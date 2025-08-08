@@ -17,3 +17,16 @@ class BorgereClient:
         if response.status_code == 404:
             return None
         return response.json()
+    
+    def hent_borgere(self, filters: dict, søgeterm = "*") -> Optional[dict]:
+        """
+        Hent borgere med angivne filtre og søgeterm.
+        :param filters: Dictionary of filters to apply
+        :param søgeterm: Search term to filter citizens. Default is * ("alle")
+        :return: List of citizens matching the criteria or None if not found
+        """
+        endpoint = f"citizensearch"
+        response = self._client.post(endpoint, json={"filters": filters, "søgeterm": søgeterm})
+        if response.status_code == 404:
+            return None
+        return response.json()
