@@ -1,3 +1,4 @@
+import datetime
 import os
 
 from dotenv import load_dotenv
@@ -50,3 +51,68 @@ def test_hent_borgere():
     ]
     response = client._borgere_client.hent_borgere(filters)
     assert response is not None
+
+# Test hent_markering med default markeringsnavn
+def test_hent_markering():
+    base_url = os.getenv("BASE_URL")
+    client_id = os.getenv("CLIENT_ID")
+    client_secret = os.getenv("CLIENT_SECRET")
+    api_key = os.getenv("API_KEY")
+    resource = os.getenv("RESOURCE")
+
+    client = MomentumClientManager(
+        base_url = base_url,
+        client_id = client_id,
+        client_secret = client_secret,
+        api_key = api_key,
+        resource = resource
+    )
+
+    response = client._borgere_client.hent_markering()
+    assert response is not None
+
+# Test hent_markering med et specifikt markeringsnavn
+def test_hent_markering_specific():
+    base_url = os.getenv("BASE_URL")
+    client_id = os.getenv("CLIENT_ID")
+    client_secret = os.getenv("CLIENT_SECRET")
+    api_key = os.getenv("API_KEY")
+    resource = os.getenv("RESOURCE")
+
+    client = MomentumClientManager(
+        base_url = base_url,
+        client_id = client_id,
+        client_secret = client_secret,
+        api_key = api_key,
+        resource = resource
+    )
+    response = client._borgere_client.hent_markering("1. fællessamtale i jobcentret gennemført")
+    assert response is not None
+    assert response.get("title") == "1. fællessamtale i jobcentret gennemført"
+
+def test_opret_markering():
+    base_url = os.getenv("BASE_URL")
+    client_id = os.getenv("CLIENT_ID")
+    client_secret = os.getenv("CLIENT_SECRET")
+    api_key = os.getenv("API_KEY")
+    resource = os.getenv("RESOURCE")
+
+    client = MomentumClientManager(
+        base_url = base_url,
+        client_id = client_id,
+        client_secret = client_secret,
+        api_key = api_key,
+        resource = resource
+    )
+
+    # Test opret_markering med en gyldig markering
+    markeringsnavn = "Teknisk forlængelse - sygedagpenge"
+    # IKKE COMMIT CPR-nummer i test
+    borger = client._borgere_client.hent_borger("")
+    start_dato = datetime.date.today()
+
+    response = client._borgere_client.opret_markering(markeringsnavn, borger, start_dato)
+    assert response is not None
+
+    slettet_markering = client._borgere_client.slet_markering(response["id"])
+    assert slettet_markering is True
