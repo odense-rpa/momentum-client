@@ -116,3 +116,28 @@ def test_opret_markering():
 
     slettet_markering = client._borgere_client.slet_markering(response["id"])
     assert slettet_markering is True
+
+def test_afslut_markering():
+    base_url = os.getenv("BASE_URL")
+    client_id = os.getenv("CLIENT_ID")
+    client_secret = os.getenv("CLIENT_SECRET")
+    api_key = os.getenv("API_KEY")
+    resource = os.getenv("RESOURCE")
+
+    client = MomentumClientManager(
+        base_url = base_url,
+        client_id = client_id,
+        client_secret = client_secret,
+        api_key = api_key,
+        resource = resource
+    )
+    # IKKE COMMIT CPR-nummer i test
+    borger = client._borgere_client.hent_borger("")
+    borgers_markeringer = client._borgere_client.hent_markeringer(borger)
+    slut_dato = datetime.datetime.today()
+
+    test_markering = next((markering for markering in borgers_markeringer if markering['tag']['title'] == "Teknisk forlængelse - sygedagpenge" and markering['end'] is None), None)
+    assert test_markering is not None
+
+    afsluttet_markering = client._borgere_client.afslut_markering(test_markering, slut_dato)
+    assert afsluttet_markering is not None

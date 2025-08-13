@@ -50,6 +50,19 @@ class BorgereClient:
             return None
         return ønsket_markering
     
+    def hent_markeringer(self, borger: dict) -> Optional[dict]:
+        """
+        Henter en borgers markeringer
+
+        :param borger: Borgerens data som en Dict
+        :return: Liste af markeringer som en Dict eller None hvis fejlet
+        """
+        endpoint = f"/tagassignments?referenceId={borger['citizenId']}"
+        response = self._client.get(endpoint)
+        if response.status_code == 404:
+            return None
+        return response.json()
+
     def opret_markering(self, markeringsnavn: str, borger: dict, start_dato: datetime.date) -> Optional[dict]:
         """
         Opret en markering for en borger.
@@ -91,4 +104,35 @@ class BorgereClient:
         endpoint = f"/tagassignments/{markerings_id}/delete"
         response = self._client.post(endpoint)
         return response.status_code == 200
+    
+    def afslut_markering(self, markering: dict, slut_dato: datetime.date) -> Optional[dict]:
+        """
+        Afslutter en markering.
 
+        :param Markering: den fulde markering som dict
+        :param slut_dato: Slutdato for markeringen
+        :return: Opdateret markering som dict eller None hvis fejlet
+        """
+        # Format slut_dato as yyyy-MM-ddT22:00:00Z
+        formatted_slut_dato = slut_dato.strftime("%Y-%m-%dT22:00:00Z")
+
+        body = {
+            "tagId": f"{markering['tag']['id']}",
+            "start": markering["start"],
+            "end": f"{formatted_slut_dato}",
+            "correctionComment": {
+                "referenceId": f"{markering['id']}",
+                "referenceType": None,
+                "body": None,
+                "title": None,
+                "commentTypeCode": None
+            },
+            "attachmentsToAdd": [
+            ],
+            "attachmentsToRemove": [
+            ]
+        }
+
+        endpoint = f"/tagassignments/{markering['id']}"
+        response = self._client.put(endpoint, json=body)
+        return response.json() if response.status_code == 200 else None
