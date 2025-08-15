@@ -2,6 +2,7 @@ import datetime
 import os
 
 from dotenv import load_dotenv
+from momentum_client.functionality.borgere import NotificationImportance
 from momentum_client.manager import MomentumClientManager
 
 load_dotenv()
@@ -141,3 +142,34 @@ def test_afslut_markering():
 
     afsluttet_markering = client._borgere_client.afslut_markering(test_markering, slut_dato)
     assert afsluttet_markering is not None
+
+def test_opret_notifikation():
+    base_url = os.getenv("BASE_URL")
+    client_id = os.getenv("CLIENT_ID")
+    client_secret = os.getenv("CLIENT_SECRET")
+    api_key = os.getenv("API_KEY")
+    resource = os.getenv("RESOURCE")
+
+    client = MomentumClientManager(
+        base_url = base_url,
+        client_id = client_id,
+        client_secret = client_secret,
+        api_key = api_key,
+        resource = resource
+    )
+
+    # IKKE COMMIT CPR-nummer i test
+    borger = client._borgere_client.hent_borger("")
+    start_dato = datetime.date.today()
+    slut_dato = start_dato + datetime.timedelta(days=7)
+
+    response = client._borgere_client.opret_notifikation(
+        borger=borger,
+        titel="Test Notifikation",
+        start_dato=start_dato,
+        slut_dato=slut_dato,
+        vigtighed_af_notifikation=NotificationImportance.INFO,
+        beskrivelse="Dette er en testnotifikation.2222",
+        synlig_i_header=True
+    )
+    assert response is not None

@@ -1,6 +1,14 @@
 from typing import Optional, List
 import datetime
+from enum import Enum
 from momentum_client.client import MomentumClient
+
+class NotificationImportance(Enum):
+    """Notification importance levels"""
+    LAV = "Low"
+    NORMAL = "Normal"
+    HØJ = "High"
+    INFO = "Info"
 
 class BorgereClient:
     def __init__(self, client: MomentumClient):
@@ -136,3 +144,43 @@ class BorgereClient:
         endpoint = f"/tagassignments/{markering['id']}"
         response = self._client.put(endpoint, json=body)
         return response.json() if response.status_code == 200 else None
+    
+    def opret_notifikation(
+        self,
+        borger: dict,
+        titel: str,
+        start_dato: datetime.date,
+        slut_dato: datetime.date,
+        vigtighed_af_notifikation: NotificationImportance,
+        beskrivelse: Optional[str] = None,
+        synlig_i_header: bool = False
+    ) -> Optional[dict]:
+        """
+        Create a notification for a citizen.
+
+        :param borger: Citizen's data as a dictionary
+        :param titel: Title of the notification
+        :param start_dato: Start date of the notification
+        :param slut_dato: End date of the notification
+        :param vigtighed_af_notifikation: Importance level of the notification
+        :param beskrivelse: Optional description of the notification
+        :param synlig_i_header: Boolean flag indicating visibility in header
+        :return: Created notification data as a dictionary or None if failed
+        """
+        body = {
+            "referenceId": borger["citizenId"],
+            "title": titel,
+            "start": f"{start_dato}",
+            "end": f"{slut_dato}",
+            "alertSeverity": vigtighed_af_notifikation.value,
+            "description": beskrivelse,
+            "visibleInHeaderBar": synlig_i_header,
+            "applicationContext" : 0,
+            "attachmentIds": [
+            ]
+        }
+
+        endpoint = f"/alerts"
+        response = self._client.post(endpoint, json=body)
+        return response.json() if response.status_code == 200 else None
+    
