@@ -20,3 +20,8 @@ class MomentumClientManager:
         )
 
         self._borgere_client = BorgereClient(self._client)
+
+    @property
+    def borgere(self) -> BorgereClient:
+        """Access to the BorgereClient for citizen-related operations."""
+        return self._borgere_client
