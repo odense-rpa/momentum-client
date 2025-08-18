@@ -2,7 +2,6 @@ import datetime
 import os
 
 from dotenv import load_dotenv
-from momentum_client.functionality.borgere import NotificationImportance
 from momentum_client.manager import MomentumClientManager
 
 load_dotenv()
@@ -168,7 +167,7 @@ def test_opret_notifikation():
         titel="Test Notifikation",
         start_dato=start_dato,
         slut_dato=slut_dato,
-        vigtighed_af_notifikation=NotificationImportance.INFO,
+        vigtighed_af_notifikation="info",
         beskrivelse="Dette er en testnotifikation.2222",
         synlig_i_header=True
     )

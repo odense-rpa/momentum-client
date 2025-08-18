@@ -3,12 +3,6 @@ import datetime
 from enum import Enum
 from momentum_client.client import MomentumClient
 
-class NotificationImportance(Enum):
-    """Notification importance levels"""
-    LAV = "Low"
-    NORMAL = "Normal"
-    HØJ = "High"
-    INFO = "Info"
 
 class BorgereClient:
     def __init__(self, client: MomentumClient):
@@ -151,7 +145,7 @@ class BorgereClient:
         titel: str,
         start_dato: datetime.date,
         slut_dato: datetime.date,
-        vigtighed_af_notifikation: NotificationImportance,
+        vigtighed_af_notifikation: str,
         beskrivelse: Optional[str] = None,
         synlig_i_header: bool = False
     ) -> Optional[dict]:
@@ -167,12 +161,17 @@ class BorgereClient:
         :param synlig_i_header: Boolean flag indicating visibility in header
         :return: Created notification data as a dictionary or None if failed
         """
+        godkendte_vigtigheder = {"info", "high", "low", "normal"}
+
+        if vigtighed_af_notifikation not in godkendte_vigtigheder:
+            raise ValueError(f"Ugyldig vigtighed: {vigtighed_af_notifikation}")
+
         body = {
             "referenceId": borger["citizenId"],
             "title": titel,
             "start": f"{start_dato}",
             "end": f"{slut_dato}",
-            "alertSeverity": vigtighed_af_notifikation.value,
+            "alertSeverity": vigtighed_af_notifikation,
             "description": beskrivelse,
             "visibleInHeaderBar": synlig_i_header,
             "applicationContext" : 0,
