@@ -1,27 +1,77 @@
+"""
+MomentumClientManager - A facade/factory for all Momentum functionality clients.
+
+This manager simplifies the instantiation of multiple clients by providing
+a single entry point with lazy-loaded properties for each functionality.
+"""
+
+from typing import Optional
 from .client import MomentumClient
 from .functionality.borgere import BorgereClient
 
-class MomentumClientManager:
-    def __init__(
-            self,
-            base_url: str,
-            client_id: str,
-            client_secret: str,
-            api_key: str,
-            resource: str
-    ) -> None:
-        # initialize functionality classes
-        self._client = MomentumClient(
-            base_url=base_url,
-            client_id=client_id,
-            client_secret=client_secret,
-            api_key=api_key,
-            resource=resource
-        )
 
-        self._borgere_client = BorgereClient(self._client)
+class MomentumClientManager:
+    """
+    Manager til nem adgang til alle Momentum funktionalitets-klienter.
+
+    VIGTIGT: Brug altid denne manager i stedet for at oprette individuelle klienter.
+    Dette sikrer korrekt konfiguration og lazy loading.
+
+    Eksempel:
+        momentum = MomentumClientManager(base_url="...", client_id="...", client_secret="...", api_key="...", resource="...")
+        borger = momentum.borgere.hent_borger("1234567890")
+        markering = momentum.borgere.opret_markering("test", borger, datetime.date.today())
+    """
+
+    def __init__(
+        self,
+        base_url: str,
+        client_id: str,
+        client_secret: str,
+        api_key: str,
+        resource: str,
+        timeout: float = 30.0
+    ):
+        """
+        Initialize the MomentumClientManager.
+
+        Args:
+            base_url: The base URL for the Momentum API
+            client_id: The OAuth2 client ID
+            client_secret: The OAuth2 client secret
+            api_key: The API key for authentication
+            resource: The resource identifier
+            timeout: Request timeout in seconds (default: 30.0)
+        """
+        self._base_url = base_url
+        self._client_id = client_id
+        self._client_secret = client_secret
+        self._api_key = api_key
+        self._resource = resource
+
+        # Store configuration for lazy loading
+        self._config = {"timeout": timeout}
+
+        # Lazy-loaded clients
+        self._momentum_client: Optional[MomentumClient] = None
+        self._borgere_client: Optional[BorgereClient] = None
+
+    @property
+    def momentum_client(self) -> MomentumClient:
+        """Get the base MomentumClient (lazy-loaded with configuration)."""
+        if self._momentum_client is None:
+            self._momentum_client = MomentumClient(
+                base_url=self._base_url,
+                client_id=self._client_id,
+                client_secret=self._client_secret,
+                api_key=self._api_key,
+                resource=self._resource,
+            )
+        return self._momentum_client
 
     @property
     def borgere(self) -> BorgereClient:
-        """Access to the BorgereClient for citizen-related operations."""
+        """Get the BorgereClient (lazy-loaded)."""
+        if self._borgere_client is None:
+            self._borgere_client = BorgereClient(self.momentum_client)
         return self._borgere_client

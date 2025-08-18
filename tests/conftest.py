@@ -42,3 +42,12 @@ def base_client(momentum_manager):
 def borgere_client(momentum_manager):
     """Returns the BorgereClient for citizen-related operations."""
     return momentum_manager._borgere_client
+
+
+@pytest.fixture(scope="session")
+def test_cpr():
+    """Returns the test CPR from environment variables."""
+    test_cpr = os.getenv("TEST_CPR")
+    if not test_cpr:
+        raise ValueError("TEST_CPR must be set in .env file")
+    return test_cpr
