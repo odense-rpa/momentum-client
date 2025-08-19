@@ -8,6 +8,7 @@ a single entry point with lazy-loaded properties for each functionality.
 from typing import Optional
 from .client import MomentumClient
 from .functionality.borgere import BorgereClient
+from .functionality.virksomheder import VirksomhederClient
 
 
 class MomentumClientManager:
@@ -21,6 +22,7 @@ class MomentumClientManager:
         momentum = MomentumClientManager(base_url="...", client_id="...", client_secret="...", api_key="...", resource="...")
         borger = momentum.borgere.hent_borger("1234567890")
         markering = momentum.borgere.opret_markering("test", borger, datetime.date.today())
+        virksomheder = momentum.virksomheder.hent_virksomheder(filters={}, søgeterm="test")
     """
 
     def __init__(
@@ -30,7 +32,7 @@ class MomentumClientManager:
         client_secret: str,
         api_key: str,
         resource: str,
-        timeout: float = 30.0
+        timeout: float = 60.0
     ):
         """
         Initialize the MomentumClientManager.
@@ -41,7 +43,7 @@ class MomentumClientManager:
             client_secret: The OAuth2 client secret
             api_key: The API key for authentication
             resource: The resource identifier
-            timeout: Request timeout in seconds (default: 30.0)
+            timeout: Request timeout in seconds (default: 60.0)
         """
         self._base_url = base_url
         self._client_id = client_id
@@ -55,6 +57,7 @@ class MomentumClientManager:
         # Lazy-loaded clients
         self._momentum_client: Optional[MomentumClient] = None
         self._borgere_client: Optional[BorgereClient] = None
+        self._virksomheder_client: Optional[VirksomhederClient] = None
 
     @property
     def momentum_client(self) -> MomentumClient:
@@ -75,3 +78,10 @@ class MomentumClientManager:
         if self._borgere_client is None:
             self._borgere_client = BorgereClient(self.momentum_client)
         return self._borgere_client
+
+    @property
+    def virksomheder(self) -> VirksomhederClient:
+        """Get the VirksomhederClient (lazy-loaded)."""
+        if self._virksomheder_client is None:
+            self._virksomheder_client = VirksomhederClient(self.momentum_client)
+        return self._virksomheder_client
