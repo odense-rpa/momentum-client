@@ -9,6 +9,7 @@ from typing import Optional
 from .client import MomentumClient
 from .functionality.borgere import BorgereClient
 from .functionality.virksomheder import VirksomhederClient
+from .functionality.markeringer import MarkeringerClient
 
 
 class MomentumClientManager:
@@ -58,6 +59,7 @@ class MomentumClientManager:
         self._momentum_client: Optional[MomentumClient] = None
         self._borgere_client: Optional[BorgereClient] = None
         self._virksomheder_client: Optional[VirksomhederClient] = None
+        self._markeringer_client: Optional[MarkeringerClient] = None
 
     @property
     def momentum_client(self) -> MomentumClient:
@@ -85,3 +87,10 @@ class MomentumClientManager:
         if self._virksomheder_client is None:
             self._virksomheder_client = VirksomhederClient(self.momentum_client)
         return self._virksomheder_client
+
+    @property
+    def markeringer(self) -> MarkeringerClient:
+        """Get the MarkeringerClient (lazy-loaded)."""
+        if self._markeringer_client is None:
+            self._markeringer_client = MarkeringerClient(self.momentum_client)
+        return self._markeringer_client

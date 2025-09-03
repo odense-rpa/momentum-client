@@ -26,8 +26,8 @@ def test_hent_virksomheder_med_cvr(momentum_manager: MomentumClientManager):
     response = momentum_manager.virksomheder.hent_virksomheder_med_cvr(cvr)
     assert response is not None
 
-def test_hent_virksomhed_med_markering_passiv_virksomhedsbank(momentum_manager: MomentumClientManager):
-    """specifik markeringsid: b15b54bb-d182-4b68-8534-bc4fb718862d"""
+def test_hent_virksomhed_med_markering_passiv_virksomhedsbank(momentum_manager: MomentumClientManager, test_virksomhedsid):
+    """specifik markeringsid: """
 
     filters = [
     {
@@ -38,18 +38,18 @@ def test_hent_virksomhed_med_markering_passiv_virksomhedsbank(momentum_manager: 
             None,
             None,
             None,
-            "b15b54bb-d182-4b68-8534-bc4fb718862d"
+            test_virksomhedsid
         ]
     },
     ]
     response = momentum_manager.virksomheder.hent_virksomheder(filters=filters)
     assert response is not None
 
-def test_find_borgere_i_tilbud_på_virksomhed(momentum_manager: MomentumClientManager):
+def test_find_borgere_i_tilbud_på_virksomhed(momentum_manager: MomentumClientManager, test_virksomhedsid):
     """Test find_borgere_i_tilbud_på_virksomhed with empty filters."""
     # You will handle virksomhed yourself
     virksomhed = {
-        "productionUnitId": "6d2302e3-4364-40ef-8897-9c622c75bfb4"
+        "productionUnitId": test_virksomhedsid
     }
     
     filters = []
@@ -61,11 +61,11 @@ def test_find_borgere_i_tilbud_på_virksomhed(momentum_manager: MomentumClientMa
     assert response is not None
     assert len(response["data"]) > 20
 
-def test_find_jobordre_på_virksomhed(momentum_manager: MomentumClientManager):
+def test_find_jobordre_på_virksomhed(momentum_manager: MomentumClientManager, test_virksomhedsid):
     """Test find_jobordre_på_virksomhed with empty filters."""
     # Use the same productionUnitId as the borgere test
     virksomhed = {
-        "productionUnitId": "6d2302e3-4364-40ef-8897-9c622c75bfb4"
+        "productionUnitId": test_virksomhedsid
     }
     
     filters = []

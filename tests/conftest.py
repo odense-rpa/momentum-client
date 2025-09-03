@@ -41,7 +41,19 @@ def base_client(momentum_manager):
 @pytest.fixture(scope="session")
 def borgere_client(momentum_manager):
     """Returns the BorgereClient for citizen-related operations."""
-    return momentum_manager._borgere_client
+    return momentum_manager.borgere
+
+
+@pytest.fixture(scope="session")
+def virksomheder_client(momentum_manager):
+    """Returns the VirksomhederClient for company-related operations."""
+    return momentum_manager.virksomheder
+
+
+@pytest.fixture(scope="session")
+def markeringer_client(momentum_manager):
+    """Returns the MarkeringerClient for marking-related operations."""
+    return momentum_manager.markeringer
 
 
 @pytest.fixture(scope="session")
@@ -51,3 +63,11 @@ def test_cpr():
     if not test_cpr:
         raise ValueError("TEST_CPR must be set in .env file")
     return test_cpr
+
+@pytest.fixture(scope="session")
+def test_virksomhedsid():
+    """Returns the test virksomhedsid from environment variables."""
+    test_virksomhedsid = os.getenv("TEST_VIRKSOMHEDSID")
+    if not test_virksomhedsid:
+        raise ValueError("TEST_VIRKSOMHEDSID must be set in .env file")
+    return test_virksomhedsid
