@@ -13,12 +13,13 @@ def test_hent_virksomheder_with_filters(momentum_manager: MomentumClientManager)
                 None,
                 None,
                 None,
-                "b0c52d99-f739-49d8-8532-417f224fa757"
+                "6f148a35-5a47-40d1-9b7e-a3a42e93eeff"
             ]
         },
     ]
     response = momentum_manager.virksomheder.hent_virksomheder(filters=filters)
     assert response is not None
+    assert len(response["data"]) >= 2
 
 def test_hent_virksomheder_med_cvr(momentum_manager: MomentumClientManager):
     """Test hent_virksomheder_med_cvr with specific CVR number."""
