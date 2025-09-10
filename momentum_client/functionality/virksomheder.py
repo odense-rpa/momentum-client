@@ -128,3 +128,52 @@ class VirksomhederClient:
             
         return response.json()
 
+    def søg_virksomhed_med_p_nummer(self, pnummer: str) -> Optional[dict]:
+        """
+        Hent virksomhedsoplysninger baseret på P-nummer.
+        
+        :param pnummer: P-nummer for virksomheden
+        :return: Company information or None if not found
+        """
+        endpoint = f"/search"
+        body = {"term": pnummer, 
+                "size": 15, 
+                "skip": 0, 
+                "allowedCategories": 
+                    ["Citizen", "Company", "ContactPerson", "Caseworker", "Offer", "JobOrder", "JobAd", "Course"], 
+                "parentId": None,
+                "isActive": True,
+                "hasUserId": None,
+                "isPhoneNumbersOnly": None,
+                "includeInternalUsers": False
+            }
+
+        response = self._client.post(endpoint,
+                                     json=body)
+        
+        if response.status_code == 404:
+            return None
+
+        return response.json()
+    
+    def hent_virksomheds_kontaktpersoner(self, virksomhedsId: str, søgeterm = "", sidetal_resultater: int = 1, antal_resultater: int = 50, kun_active = True) -> Optional[dict]:
+        """
+        Hent kontaktpersoner for en given virksomhed baseret på virksomhedsId.
+        
+        :param virksomhedsId: ID for virksomheden
+        :return: List of contact persons or None if not found
+        """
+        endpoint = f"/punits/{virksomhedsId}/contactpersons?&pageNumber={sidetal_resultater}&pageSize={antal_resultater}"
+        body = {
+            "searchText": søgeterm,
+            "pageNumber": sidetal_resultater,
+            "pageSize": antal_resultater,
+            "onlyActive": kun_active
+        }
+
+        response = self._client.post(endpoint, json=body)
+
+        if response.status_code == 404:
+            return None
+        
+        return response.json()

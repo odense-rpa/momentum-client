@@ -86,6 +86,20 @@ def test_find_jobordre_på_virksomhed(momentum_manager: MomentumClientManager, t
     )
     assert response is not None
     assert len(response["data"]) > 100
+
+def test_søg_virksomhed_med_p_nummer(momentum_manager: MomentumClientManager):
+    """Test søg_virksomhed_med_p_nummer with a valid P-nummer."""
+    test_pnummer = "1003316649"
+    response = momentum_manager.virksomheder.søg_virksomhed_med_p_nummer(test_pnummer)
+    assert response is not None
+    assert isinstance(response, dict)
+
+def test_hent_virksomheds_kontaktpersoner(momentum_manager: MomentumClientManager):
+    """Test hent_virksomheds_kontaktpersoner with a valid virksomhedsid."""
+    test_virksomhedsid = "4224e7fb-40c9-409c-938e-8aae62d5d753"
+    response = momentum_manager.virksomheder.hent_virksomheds_kontaktpersoner(test_virksomhedsid, sidetal_resultater=1, antal_resultater=9999)
+    assert response is not None
+    assert isinstance(response, dict)
     
 
 
