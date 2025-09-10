@@ -71,16 +71,16 @@ class VirksomhederClient:
         
         return response.json()
     
-    def find_borgere_i_tilbud_på_virksomhed(self, virksomhed:dict, filters: dict = None, søgeterm: str = ""):
+    def find_borgere_i_tilbud_på_virksomhed(self, virksomhedsid: str, filters: dict = None, søgeterm: str = ""):
         """
         Find borgere (citizens) in tilbud (offers/placements) at a specific virksomhed (company).
         
-        :param virksomhed: Dictionary containing company information with productionUnitId
+        :param virksomhedsid: Production unit ID for the company
         :param filters: List of filter dictionaries with fieldName, values, etc.
         :param søgeterm: Search term
         :return: Search results or None if not found
         """
-        endpoint = f"/placements/productionUnit/{virksomhed["productionUnitId"]}/search"
+        endpoint = f"/placements/productionUnit/{virksomhedsid}/search"
         
         # Prepare the request body according to the API model
         body = {
@@ -95,11 +95,11 @@ class VirksomhederClient:
             
         return response.json()
     
-    def find_jobordre_på_virksomhed(self, virksomhed: dict, filters: dict = None, søgeterm: str = ""):
+    def find_jobordre_på_virksomhed(self, virksomhedsid: str, filters: dict = None, søgeterm: str = ""):
         """
         Find jobordre (job orders/recruitments) at a specific virksomhed (company).
         
-        :param virksomhed: Dictionary containing company information with productionUnitId
+        :param virksomhedsid: Production unit ID for the company
         :param filters: List of filter dictionaries with fieldName, values, etc.
         :param søgeterm: Search term
         :return: Search results or None if not found
@@ -111,7 +111,7 @@ class VirksomhederClient:
         
         # Add the required providerId filter
         provider_filter = {
-            "values": [virksomhed['productionUnitId']],
+            "values": [virksomhedsid],
             "fieldName": "providerId"
         }
         request_filters.append(provider_filter)

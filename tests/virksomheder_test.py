@@ -58,14 +58,11 @@ def test_hent_virksomhed_med_markering_passiv_virksomhedsbank(momentum_manager: 
 def test_find_borgere_i_tilbud_på_virksomhed(momentum_manager: MomentumClientManager, test_virksomhedsid):
     """Test find_borgere_i_tilbud_på_virksomhed with empty filters."""
     # You will handle virksomhed yourself
-    virksomhed = {
-        "productionUnitId": test_virksomhedsid
-    }
     
     filters = []
     
     response = momentum_manager.virksomheder.find_borgere_i_tilbud_på_virksomhed(
-        virksomhed=virksomhed,
+        test_virksomhedsid,
         filters=filters
     )
     assert response is not None
@@ -74,14 +71,11 @@ def test_find_borgere_i_tilbud_på_virksomhed(momentum_manager: MomentumClientMa
 def test_find_jobordre_på_virksomhed(momentum_manager: MomentumClientManager, test_virksomhedsid):
     """Test find_jobordre_på_virksomhed with empty filters."""
     # Use the same productionUnitId as the borgere test
-    virksomhed = {
-        "productionUnitId": test_virksomhedsid
-    }
     
     filters = []
     
     response = momentum_manager.virksomheder.find_jobordre_på_virksomhed(
-        virksomhed=virksomhed,
+        test_virksomhedsid,
         filters=filters
     )
     assert response is not None
