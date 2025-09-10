@@ -27,6 +27,15 @@ def test_hent_virksomheder_med_cvr(momentum_manager: MomentumClientManager):
     response = momentum_manager.virksomheder.hent_virksomheder_med_cvr(cvr)
     assert response is not None
 
+def test_hent_virksomhed_med_pNummer(momentum_manager: MomentumClientManager):
+    cvr = "29190909"
+    pNummer = "1003309680"
+
+    response = momentum_manager.virksomheder.hent_virksomhed_med_cvr_og_pnummer(cvr, pNummer)
+    
+    assert response is not None
+    assert response["displayName"].strip() == "ODENSE UNIVERSITETS HOSPITAL"
+
 def test_hent_virksomhed_med_markering_passiv_virksomhedsbank(momentum_manager: MomentumClientManager, test_virksomhedsid):
     """specifik markeringsid: """
 

@@ -41,12 +41,28 @@ class VirksomhederClient:
     
     def hent_virksomheder_med_cvr(self, cvr: str) -> Optional[dict]:
         """
-        Hent virksomhedsoplysninger baseret på CVR-nummer.
+        Hent virksomhedser med angivet CVR-nummer.
         
         :param cvr: CVR-nummer for virksomheden
         :return: Company information or None if not found
         """
         endpoint = f"/companies/{cvr}"
+        
+        response = self._client.get(endpoint)
+        
+        if response.status_code == 404:
+            return None
+        
+        return response.json()
+    
+    def hent_virksomhed_med_cvr_og_pnummer(self, cvr: str, pNummer: str) -> Optional[dict]:
+        """
+        Hent virksomhedsoplysninger på virksomhed der matcher angivet cvr og pnummer.
+        
+        :param cvr: CVR-nummer for virksomheden
+        :return: Company information or None if not found
+        """
+        endpoint = f"/companies/{cvr}/productionunits/{pNummer}"
         
         response = self._client.get(endpoint)
         
