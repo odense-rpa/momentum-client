@@ -199,3 +199,19 @@ class VirksomhederClient:
             return None
         
         return response.json()
+    
+    def ændr_kontaktpersons_status(self, kontaktpersonId: str, status = False) -> bool:
+        """
+        Ændr status for en kontaktperson baseret på kontaktpersonId.
+
+        :param kontaktpersonId: ID for kontaktpersonen
+        :return: True if successful, False otherwise
+        """
+        endpoint = f"/employees/{kontaktpersonId}/status/{str(status).lower()}"
+
+        response = self._client.post(endpoint)
+
+        if response.status_code == 200:
+            return True
+        
+        return False

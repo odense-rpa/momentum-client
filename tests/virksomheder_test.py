@@ -101,7 +101,17 @@ def test_hent_virksomheds_sagsbehandlere(momentum_manager: MomentumClientManager
     response = momentum_manager.virksomheder.hent_virksomheds_sagsbehandlere(test_virksomhedsid, sidetal_resultater=1, antal_resultater=9999)
     assert response is not None
     assert isinstance(response, dict)
-    
 
+def test_ændr_kontaktpersons_status_til_inaktiv(momentum_manager: MomentumClientManager):
+    """Test ændr_kontaktpersons_status with a valid kontaktpersonId."""
+    test_kontaktpersonId = "3fc03e29-f308-4274-842d-096bb95e5ece"
+    response = momentum_manager.virksomheder.ændr_kontaktpersons_status(test_kontaktpersonId, status=False)
+    assert response is not None
+    assert isinstance(response, bool)
 
-
+def test_ændr_kontaktpersons_status_til_aktiv(momentum_manager: MomentumClientManager):
+    """Test ændr_kontaktpersons_status with a valid kontaktpersonId."""
+    test_kontaktpersonId = "3fc03e29-f308-4274-842d-096bb95e5ece"
+    response = momentum_manager.virksomheder.ændr_kontaktpersons_status(test_kontaktpersonId, status=True)
+    assert response is not None
+    assert isinstance(response, bool)
