@@ -177,3 +177,25 @@ class VirksomhederClient:
             return None
         
         return response.json()
+    
+    def hent_virksomheds_sagsbehandlere(self, virksomhedsId: str, søgeterm = "", sidetal_resultater: int = 1, antal_resultater: int = 50, kun_active = True) -> Optional[dict]:
+        """
+        Hent sagsbehandlere for en given virksomhed baseret på virksomhedsId.
+        
+        :param virksomhedsId: ID for virksomheden
+        :return: List of caseworkers or None if not found
+        """
+        endpoint = f"/punits/{virksomhedsId}/caseworkers?&pageNumber={sidetal_resultater}&pageSize={antal_resultater}"
+        body = {
+            "searchText": søgeterm,
+            "pageNumber": sidetal_resultater,
+            "pageSize": antal_resultater,
+            "onlyActive": kun_active
+        }
+
+        response = self._client.post(endpoint, json=body)
+
+        if response.status_code == 404:
+            return None
+        
+        return response.json()

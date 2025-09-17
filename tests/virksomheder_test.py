@@ -94,6 +94,13 @@ def test_hent_virksomheds_kontaktpersoner(momentum_manager: MomentumClientManage
     response = momentum_manager.virksomheder.hent_virksomheds_kontaktpersoner(test_virksomhedsid, sidetal_resultater=1, antal_resultater=9999)
     assert response is not None
     assert isinstance(response, dict)
+
+def test_hent_virksomheds_sagsbehandlere(momentum_manager: MomentumClientManager):
+    """Test hent_virksomheds_sagsbehandlere with a valid virksomhedsid."""
+    test_virksomhedsid = "4224e7fb-40c9-409c-938e-8aae62d5d753"
+    response = momentum_manager.virksomheder.hent_virksomheds_sagsbehandlere(test_virksomhedsid, sidetal_resultater=1, antal_resultater=9999)
+    assert response is not None
+    assert isinstance(response, dict)
     
 
 
