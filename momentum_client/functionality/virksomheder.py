@@ -156,7 +156,7 @@ class VirksomhederClient:
 
         return response.json()
     
-    def hent_virksomheds_kontaktpersoner(self, virksomhedsId: str, søgeterm = "", sidetal_resultater: int = 1, antal_resultater: int = 9999, kun_active = True) -> Optional[dict]:
+    def hent_virksomheds_kontaktpersoner(self, virksomhedsId: str, søgeterm = "", sidetal_resultater: int = 1, antal_resultater: int = 999999, kun_active = True) -> Optional[dict]:
         """
         Hent kontaktpersoner for en given virksomhed baseret på virksomhedsId.
         
@@ -178,7 +178,7 @@ class VirksomhederClient:
         
         return response.json()
     
-    def hent_virksomheds_sagsbehandlere(self, virksomhedsId: str, søgeterm = "", sidetal_resultater: int = 1, antal_resultater: int = 9999, kun_active = True) -> Optional[dict]:
+    def hent_virksomheds_sagsbehandlere(self, virksomhedsId: str, søgeterm = "", sidetal_resultater: int = 1, antal_resultater: int = 999999, kun_active = True) -> Optional[dict]:
         """
         Hent sagsbehandlere for en given virksomhed baseret på virksomhedsId.
         
