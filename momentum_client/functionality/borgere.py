@@ -183,3 +183,140 @@ class BorgereClient:
         response = self._client.post(endpoint, json=body)
         return response.json() if response.status_code == 200 else None
     
+    def opdater_borgers_ansvarlige_og_kontaktpersoner(
+            self,
+            borger: dict,
+            medarbejderid: str,
+            medarbejdertype = 0,
+            medarbejderrolle: str = "OVRIG_ANSVARLIG"
+        ) -> Optional[dict]:
+        """
+        Opdaterer en borgers ansvarlige og kontaktpersoner.
+        Medarbejdertype er et tal, der giver typen:
+        * 0 = Øvrige
+        * 1 = Primære
+
+        -----
+        Medarbejderrolle er den rolle der står i UI:
+
+        * OVRIG_ANSVARLIG = Øvrig Ansvarlig
+        * BESKAFTIGELSESSAGSBEHANDLER = Beskæftigelsessagsbehandler
+
+        pr 12/12/24 er listen opdateret - ikke fuldent
+        """
+
+        json_body = {
+            "caseworkers": [
+                {
+                "actorId": f"{medarbejderid}",
+                "role": f"{medarbejdertype}",
+                "responsibilities": [
+                    {
+                    "responsibilityCode": f"{medarbejderrolle}",
+                    "showInJobnet": None
+                    }
+                ]
+                }
+            ],
+            "privateContactPersons": []
+            }
+
+        # hent alle borgers caseworkers:
+        endpoint = f"/responsibleCaseworkers/all/byCitizen/{borger['citizenId']}"
+        alle_caseworkers_json = self._client.get(endpoint).json()
+        # filtrer de aktive caseworkers
+        active_caseworkers = [
+            item for item in alle_caseworkers_json
+            if item.get("endDate") is None
+        ]
+
+        # Process caseworkers using the logic from C# code
+        # original_json is json_body, caseworker_json is active_caseworkers
+        caseworkers = json_body.get("caseworkers", [])
+        private_contacts = json_body.get("privateContactPersons", [])
+        
+        # Responsibility name to code mapping
+        responsibility_mapping = {
+            "Øvrig ansvarlig": "OVRIG_ANSVARLIG",
+            "Beskæftigelsessagsbehandler": "BESKAFTIGELSESSAGSBEHANDLER",
+            "Anden aktør": "ANDEN_AKTOR",
+            "Sanktionsteam": "74be96ca-5fd3-44c2-a951-cba7f3dc9c97",
+            "Fastholdelseskonsulent": "CASEWORKER_RESPONSIBILITY_FASTHOLDELSESKONSULENT",
+            "Jobkonsulent": "CASEWORKER_RESPONSIBILITY_JOBKONSULENT",
+            "Kommunal udslusningskoordinator": "KOMMUNAL_UDSLUSNINGSKOORDINATOR",
+            "Sekundær ansvarlig": "SEKUNDER_ANSVARLIG",
+            "Leder": "LEDER",
+            "Mentor": "MENTOR",
+            "Personlig jobformidler": "PERSONLIG_JOBFORMIDLER",
+            "Koordinerende sagsbehandler": "KOORDINERENDE_SAGSBEHANDLER",
+            "Virksomhedskonsulent": "VIRKSOMHEDSKONSULENT",
+            "Støtte-kontaktperson": "STØTTE-KONTAKTPERSON",
+            "Ydelsesmedarbejder": "YDELSESMEDARBEJDER",
+            "Tilbudsansvarlig": "TILBUDSANSVARLIG",
+            "Uddannelsesvejleder": "UDDANNELSESVEJLEDER"
+        }
+        
+        for item in active_caseworkers:
+            actor_id = str(item["caseworkerId"])
+            responsibility_name = str(item["responsibilityName"])
+            
+            # Handle private contact persons separately
+            if responsibility_name in ["Bisidder", "Partsrepræsentant"]:
+                private_contact_id = str(item["id"])  # Use "id" instead of "caseworkerId"
+                private_responsibility_code = (
+                    "0acce8a4-d610-4a97-9c57-5abd4d14ae80" if responsibility_name == "Bisidder"
+                    else "fbe758a1-03aa-49c1-9ad5-27400b379cb7"
+                )
+                
+                private_contact = {
+                    "actorId": private_contact_id,
+                    "responsibilityCodes": [private_responsibility_code]
+                }
+                
+                private_contacts.append(private_contact)
+                continue  # Skip the rest of the loop since it's not a caseworker
+            
+            # Parse role as a floating-point value
+            role_value = float(item["role"])
+            role = 1 if role_value == 1.0 else 0
+            
+            new_caseworker = {
+                "actorId": actor_id,
+                "role": role
+            }
+            
+            # Map responsibilityName to responsibilityCode
+            responsibility_code = responsibility_mapping.get(responsibility_name, "OVRIG_ANSVARLIG")
+            
+            # Safely parse "showInJobnet" without exceptions
+            show_in_jobnet = (
+                item.get("showInJobnet") is not None and 
+                isinstance(item["showInJobnet"], bool) and 
+                item["showInJobnet"]
+            )
+            
+            if role == 0:  # When role is 0
+                responsibility_obj = {
+                    "responsibilityCode": responsibility_code
+                }
+                
+                # Only add showInJobnet if it's true
+                if show_in_jobnet:
+                    responsibility_obj["showInJobnet"] = True
+                else:
+                    responsibility_obj["showInJobnet"] = None
+                
+                new_caseworker["responsibilities"] = [responsibility_obj]
+            else:  # When role is 1
+                new_caseworker["responsibilities"] = []  # Empty responsibilities
+            
+            caseworkers.append(new_caseworker)
+        
+        # Update json_body with processed data
+        json_body["caseworkers"] = caseworkers
+        json_body["privateContactPersons"] = private_contacts
+
+        endpoint = f"/citizens/{borger['citizenId']}/responsibleactors"
+        response = self._client.put(endpoint, json=json_body)
+        return response.json() if response.status_code == 200 else None
+        

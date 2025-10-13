@@ -74,3 +74,11 @@ def test_opret_notifikation(momentum_manager: MomentumClientManager, test_cpr):
         synlig_i_header=True
     )
     assert response is not None
+
+def test_opdater_borgers_ansvarlige_og_kontaktpersoner(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    response = momentum_manager.borgere.opdater_borgers_ansvarlige_og_kontaktpersoner(
+        borger=borger,
+        medarbejderid="476ebc9c-969d-424c-92f0-d582bf6176bb"
+    )
+    assert response is not None
