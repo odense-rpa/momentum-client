@@ -19,6 +19,14 @@ class BorgereClient:
         response = self._client.get(endpoint)
         if response.status_code == 404:
             return None
+        
+        borger = response.json()
+
+        endpoint = f"citizens/{borger["citizenId"]}"
+        response = self._client.get(endpoint)
+        if response.status_code == 404:
+            return None
+        
         return response.json()
     
     def hent_borgere(self, filters: dict, søgeterm = "*") -> Optional[dict]:
