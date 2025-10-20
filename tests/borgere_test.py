@@ -98,3 +98,11 @@ def test_søg_et_resultat(momentum_manager: MomentumClientManager, test_cpr):
 def test_søg_ingen_resultater(momentum_manager: MomentumClientManager):
     response = momentum_manager.momentum_client.søg(søgeterm="DetteCprFindesIkke123", kategori="Citizen")
     assert response is not None
+
+def test_hent_sagsbehandler(momentum_manager: MomentumClientManager):
+    response = momentum_manager.borgere.hent_sagsbehandler("jakkw")
+    assert response is not None
+
+def test_hent_sagsbehandler_med_nul_resultat(momentum_manager: MomentumClientManager):
+    response = momentum_manager.borgere.hent_sagsbehandler("jakfvdgfdgkw")
+    assert response is None

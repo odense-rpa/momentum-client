@@ -328,3 +328,22 @@ class BorgereClient:
         response = self._client.put(endpoint, json=json_body)
         return response.json() if response.status_code == 200 else None
         
+    def hent_sagsbehandler(self, initialer: str) -> Optional[dict]:
+        """
+        Hent sagsbehandler information baseret på medarbejderinitialer.
+
+        :param initialer: Medarbejderens initialer
+        :return: Sagsbehandler data som en Dict eller None hvis ikke fundet
+        """
+        
+        medarbejdere = self._client.søg(søgeterm=initialer, kategori="Caseworker", kun_active=True, ønsket_antal=10)
+
+        if not medarbejdere:
+            return None
+
+        # Description indeholder "initialer"@odense.dk og bruges til at finde den korrekte medarbejder:
+        resultat = next((item for item in medarbejdere if item.get("description") == f"{initialer}@odense.dk"), None)
+        return resultat
+
+
+
