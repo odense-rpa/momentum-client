@@ -1,5 +1,6 @@
 import httpx
 import logging
+from typing import Optional, List
 
 from urllib.parse import urljoin
 from .hooks import create_response_logging_hook
@@ -113,3 +114,63 @@ class MomentumClient:
         response = self._client.delete(url, **kwargs)
         response.raise_for_status()
         return response
+    
+    def søg(self, søgeterm: str, kategori: str, kun_active = True, ønsket_antal = 100) -> Optional[dict]:
+        """
+        Søg efter borgere/virksomheder/kontaktpersoner/osv.
+
+        :param søgeterm: Hvad søges der efter.
+        :param kategori: Kategori at søge indenfor (f.eks. 'borger', 'virksomhed', 'kontaktperson', 'sagsbehandler').
+        :param kun_active: Om kun aktive borgere skal inkluderes.
+        :param ønsket_antal: Ønsket antal resultater at returnere.
+        :return: JSON svar fra API'et eller None hvis anmodningen fejler.
+        """
+
+        # konstanter
+        GODKENDTE_KATEGORIER = ['Citizen', 'Company', 'ContactPerson', 'Caseworker', 'Offer', 'JobOrder', 'JobAd', "Course"]
+        BATCH_STØRRELSE = 200
+
+        if kategori not in GODKENDTE_KATEGORIER:
+            raise ValueError(f"Ugyldig kategori: {kategori}. Godkendte kategorier er: {', '.join(GODKENDTE_KATEGORIER)}")
+        
+        spring_over = 0
+        
+        søgeskabelon = {
+            "term": f"{søgeterm}",
+            "size": f"{BATCH_STØRRELSE}",
+            "skip": f"{spring_over}",
+            "allowedCategories": [
+                "Citizen",
+                "Company",
+                "ContactPerson",
+                "Caseworker",
+                "Offer",
+                "JobOrder",
+                "JobAd",
+                "Course"
+            ],
+            "parentId": None,
+            "isActive": f"{str(kun_active).lower()}",
+            "hasUserId": None
+        }
+
+        søgning = self.post("/search", json=søgeskabelon).json()
+        # Skal vi hente alle?
+        if ønsket_antal == 0 or ønsket_antal > søgning["totalCount"]:
+            ønsket_antal = søgning["totalCount"]
+
+        # Opret resultat liste
+        resultat: List[dict] = []
+
+        # Tilføj første batch til resultat
+        resultat.extend(søgning.get('results', []))
+
+        # Hent flere batches hvis nødvendigt
+        if len(resultat) < ønsket_antal:
+            while len(resultat) < ønsket_antal:
+                spring_over = spring_over + BATCH_STØRRELSE
+                søgeskabelon["skip"] = f"{spring_over}"
+                søgning = self.post("/search", json=søgeskabelon).json()
+                resultat.extend(søgning.get('results', []))
+
+        return resultat

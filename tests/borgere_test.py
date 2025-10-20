@@ -82,3 +82,19 @@ def test_opdater_borgers_ansvarlige_og_kontaktpersoner(momentum_manager: Momentu
         medarbejderid="476ebc9c-969d-424c-92f0-d582bf6176bb"
     )
     assert response is not None
+
+def test_søg_mange_resultater(momentum_manager: MomentumClientManager):
+    response = momentum_manager.momentum_client.søg(søgeterm="Odense", kategori="Company")
+    assert response is not None
+
+def test_søg_flere_resultater_end_batch_størrelse(momentum_manager: MomentumClientManager):
+    response = momentum_manager.momentum_client.søg(søgeterm="Odense", kategori="Company", ønsket_antal=500)
+    assert response is not None
+
+def test_søg_et_resultat(momentum_manager: MomentumClientManager, test_cpr):
+    response = momentum_manager.momentum_client.søg(søgeterm=test_cpr, kategori="Citizen")
+    assert response is not None
+
+def test_søg_ingen_resultater(momentum_manager: MomentumClientManager):
+    response = momentum_manager.momentum_client.søg(søgeterm="DetteCprFindesIkke123", kategori="Citizen")
+    assert response is not None
