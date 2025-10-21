@@ -344,6 +344,34 @@ class BorgereClient:
         # Description indeholder "initialer"@odense.dk og bruges til at finde den korrekte medarbejder:
         resultat = next((item for item in medarbejdere if item.get("description") == f"{initialer}@odense.dk"), None)
         return resultat
+    
+    def hent_ansvarlige_sagsbehandlere(self, borger: dict) -> Optional[List[dict]]:
+        """
+        Hent ansvarlige sagsbehandlere for en given borger.
 
+        :param borger: Borgerens data som en Dict
+        :return: Liste af ansvarlige sagsbehandlere som Dicts eller None hvis fejlet
+        """
+        endpoint = f"/responsibleCaseworkers/all/byCitizen/{borger['id']}"
+        response = self._client.get(endpoint)
+        if response.status_code == 404:
+            return None
 
+        # behold kun aktive sagsbehandlere: caseworkerIsActive = 1, role = 1 og endDate = None
+        aktive_sagsbehandlere = [
+            item for item in response.json() if item.get("caseworkerIsActive") == 1 and item.get("role") == 1 and item.get("endDate") is None
+        ]
+        return aktive_sagsbehandlere
 
+    def hent_aktør(self, aktør_id: str) -> Optional[dict]:
+        """
+        Hent aktør information baseret på aktør ID.
+
+        :param aktør_id: Aktørens ID
+        :return: Aktør data som en Dict eller None hvis ikke fundet
+        """
+        endpoint = f"/actors/{aktør_id}/details"
+        response = self._client.get(endpoint)
+        if response.status_code == 404:
+            return None
+        return response.json()
