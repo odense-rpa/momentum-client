@@ -366,6 +366,7 @@ class BorgereClient:
     def hent_aktør(self, aktør_id: str) -> Optional[dict]:
         """
         Hent aktør information baseret på aktør ID.
+        Aktør ID kan findes ved at bruge hent_sagsbehandler metoden.
 
         :param aktør_id: Aktørens ID
         :return: Aktør data som en Dict eller None hvis ikke fundet
