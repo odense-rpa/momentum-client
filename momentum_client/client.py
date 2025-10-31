@@ -51,7 +51,7 @@ class MomentumClient:
             event_hooks=hooks,
             verify=str(COMBINED_CA)
         )
-        print("Using CA bundle:", self._client._transport._pool._ssl_context.get_ca_certs())
+
         # Automatically fetch the token during initialization using client credentials grant
         self._client.fetch_token(
             grant_type='client_credentials',
