@@ -97,7 +97,7 @@ class BorgereClient:
             "attachmentsToRemove": []
         }
         
-        endpoint = f"/tagassignments?referenceId={borger['citizenId']}"
+        endpoint = f"/tagassignments?referenceId={borger['id']}"
         response = self._client.post(endpoint, json=body)
 
         if response.status_code == 404:
