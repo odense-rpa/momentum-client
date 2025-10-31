@@ -67,7 +67,7 @@ class BorgereClient:
         :param borger: Borgerens data som en Dict
         :return: Liste af markeringer som en Dict eller None hvis fejlet
         """
-        endpoint = f"/tagassignments?referenceId={borger['citizenId']}"
+        endpoint = f"/tagassignments?referenceId={borger['id']}"
         response = self._client.get(endpoint)
         if response.status_code == 404:
             return None
