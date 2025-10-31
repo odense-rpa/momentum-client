@@ -1,10 +1,22 @@
 import httpx
 import logging
+#import certifi
 from typing import Optional, List
 
 from urllib.parse import urljoin
 from .hooks import create_response_logging_hook
 from authlib.integrations.httpx_client import OAuth2Client
+from pathlib import Path
+
+CA_BUNDLE = Path(__file__).parent / "certs" / "digicert_chain.pem"
+COMBINED_CA = Path(__file__).parent / "certs" / "combined_ca.pem"
+
+# Combine certifi’s bundle with DigiCert bundle - workaround for KMD BUG 31-10-2025
+#with open(COMBINED_CA, "wb") as out:
+#    out.write(open(certifi.where(), "rb").read())
+#    out.write(open(CA_BUNDLE, "rb").read())
+
+
 
 class MomentumClient:
     
@@ -36,9 +48,10 @@ class MomentumClient:
             client_secret=client_secret,
             token_endpoint=self._token_url,
             timeout=self._timeout,
-            event_hooks=hooks
+            event_hooks=hooks,
+            verify=str(COMBINED_CA)
         )
-
+        print("Using CA bundle:", self._client._transport._pool._ssl_context.get_ca_certs())
         # Automatically fetch the token during initialization using client credentials grant
         self._client.fetch_token(
             grant_type='client_credentials',
