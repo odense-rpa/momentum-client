@@ -118,5 +118,37 @@ def test_hent_aktive_sagsbehandlere(momentum_manager: MomentumClientManager, tes
     assert aktive_sagsbehandlere is not None
 
 def test_hent_aktør(momentum_manager: MomentumClientManager):
-    aktør = momentum_manager.borgere.hent_aktør("476ebc9c-969d-424c-92f0-d582bf6176bb")
+    aktør = momentum_manager.borgere.hent_aktør("1d8b1069-4844-4f5d-90df-649676df1907")
     assert aktør is not None
+
+def test_opret_privat_kontaktpersoner(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    kontaktperson = momentum_manager.borgere.opret_privat_kontaktpersoner(
+        borger=borger,
+        titel="Mr.",
+        navn="Test Kontaktperson",
+        email="test.kontaktperson@example.com",
+        telefon="12345678"
+    )
+    assert kontaktperson is not None
+
+def test_tilføj_privat_kontaktperson_til_borger(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    # Opret først en privat kontaktperson
+    kontaktperson = momentum_manager.borgere.opret_privat_kontaktpersoner(
+        borger=borger,
+        titel="Ms.2",
+        navn="aaa",
+        email="test.tilføj.kontaktperson@example.com",
+        telefon="87654321"
+    )
+    assert kontaktperson is not None
+    # Tilføj derefter kontaktpersonen til borgeren
+    tilføjet_kontaktperson = momentum_manager.borgere.opdater_borgers_ansvarlige_og_kontaktpersoner(
+        borger=borger,
+        medarbejderid=kontaktperson["id"],
+        medarbejderrolle="DUBU-sagsbehandler",
+        privat_kontaktperson=True
+    )
+    assert tilføjet_kontaktperson is not None
+

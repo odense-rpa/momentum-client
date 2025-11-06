@@ -195,8 +195,9 @@ class BorgereClient:
             self,
             borger: dict,
             medarbejderid: str,
-            medarbejdertype = 0,
-            medarbejderrolle: str = "OVRIG_ANSVARLIG"
+            medarbejdertype: Optional[int] = 0,
+            medarbejderrolle: str = "OVRIG_ANSVARLIG",
+            privat_kontaktperson: bool = False
         ) -> Optional[dict]:
         """
         Opdaterer en borgers ansvarlige og kontaktpersoner.
@@ -213,24 +214,41 @@ class BorgereClient:
         pr 12/12/24 er listen opdateret - ikke fuldent
         """
 
-        json_body = {
-            "caseworkers": [
-                {
-                "actorId": f"{medarbejderid}",
-                "role": f"{medarbejdertype}",
-                "responsibilities": [
+        if privat_kontaktperson == False:
+            json_body = {
+                "caseworkers": [
                     {
-                    "responsibilityCode": f"{medarbejderrolle}",
-                    "showInJobnet": None
+                    "actorId": f"{medarbejderid}",
+                    "role": medarbejdertype,
+                    "responsibilities": [
+                        {
+                        "responsibilityCode": f"{medarbejderrolle}",
+                        "showInJobnet": None
+                        }
+                    ]
+                    }
+                ],
+                "privateContactPersons": []
+                }
+        else:
+            if medarbejderrolle == "Bisidder":
+                private_responsibility_code = "0acce8a4-d610-4a97-9c57-5abd4d14ae80"
+            elif medarbejderrolle == "Partsrepræsentant":
+                private_responsibility_code = "fbe758a1-03aa-49c1-9ad5-27400b379cb7"
+            else:  # DUBU-sagsbehandler
+                private_responsibility_code = "de7834a1-7739-4918-b251-ed67c001bb75"
+            json_body = {
+                "caseworkers": [],
+                "privateContactPersons": [
+                    {
+                    "actorId": f"{medarbejderid}",
+                    "responsibilityCodes": [f"{private_responsibility_code}"]
                     }
                 ]
                 }
-            ],
-            "privateContactPersons": []
-            }
 
         # hent alle borgers caseworkers:
-        endpoint = f"/responsibleCaseworkers/all/byCitizen/{borger['citizenId']}"
+        endpoint = f"/responsibleCaseworkers/all/byCitizen/{borger['id']}"
         alle_caseworkers_json = self._client.get(endpoint).json()
         # filtrer de aktive caseworkers
         active_caseworkers = [
@@ -269,12 +287,14 @@ class BorgereClient:
             responsibility_name = str(item["responsibilityName"])
             
             # Handle private contact persons separately
-            if responsibility_name in ["Bisidder", "Partsrepræsentant"]:
+            if responsibility_name in ["Bisidder", "Partsrepræsentant", "DUBU-sagsbehandler"]:
                 private_contact_id = str(item["id"])  # Use "id" instead of "caseworkerId"
-                private_responsibility_code = (
-                    "0acce8a4-d610-4a97-9c57-5abd4d14ae80" if responsibility_name == "Bisidder"
-                    else "fbe758a1-03aa-49c1-9ad5-27400b379cb7"
-                )
+                if responsibility_name == "Bisidder":
+                    private_responsibility_code = "0acce8a4-d610-4a97-9c57-5abd4d14ae80"
+                elif responsibility_name == "Partsrepræsentant":
+                    private_responsibility_code = "fbe758a1-03aa-49c1-9ad5-27400b379cb7"
+                else:  # DUBU-sagsbehandler
+                    private_responsibility_code = "de7834a1-7739-4918-b251-ed67c001bb75"
                 
                 private_contact = {
                     "actorId": private_contact_id,
@@ -323,8 +343,10 @@ class BorgereClient:
         # Update json_body with processed data
         json_body["caseworkers"] = caseworkers
         json_body["privateContactPersons"] = private_contacts
+        print(json_body)
+        
 
-        endpoint = f"/citizens/{borger['citizenId']}/responsibleactors"
+        endpoint = f"/citizens/{borger['id']}/responsibleactors"
         response = self._client.put(endpoint, json=json_body)
         return response.json() if response.status_code == 200 else None
         
@@ -394,3 +416,40 @@ class BorgereClient:
         if response.status_code == 404:
             return None
         return response.json()
+    
+    def opret_privat_kontaktpersoner(self, borger: dict,
+                                     titel: str, navn: str, email: str, telefon: str) -> Optional[dict]:
+        """
+        Opret en privat kontaktperson for en given borger.
+
+        :param borger: Borgerens data som en Dict
+        :param titel: Titel på kontaktpersonen
+        :param navn: Navn på kontaktpersonen
+        :param email: Email på kontaktpersonen
+        :param telefon: Telefonnummer på kontaktpersonen
+        :return: Oprettet kontaktperson data som en Dict eller None hvis fejlet
+        """
+        endpoint = f"/citizens/{borger['id']}/privateContacts"
+        json_body = {
+            "email": {"email": email},
+            "mobile": {"number": telefon, "isMobile": True},
+            "phone": {"number": "", "isMobile": False},
+            "address": {
+                "street": "",
+                "building": "",
+                "suite": "",
+                "postalCode": "",
+                "city": "",
+                "countryCode": None,
+                "start": None,
+                "end": None
+            },
+            "description": "",
+            "title": titel,
+            "isActive": False,
+            "cpr": "",
+            "name": navn,
+            "citizenId": borger['id']
+        }
+        response = self._client.post(endpoint, json=json_body)
+        return response.json() if response.status_code == 200 else None
