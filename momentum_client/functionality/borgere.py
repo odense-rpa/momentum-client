@@ -353,13 +353,31 @@ class BorgereClient:
         :return: Liste af ansvarlige sagsbehandlere som Dicts eller None hvis fejlet
         """
         endpoint = f"/responsibleCaseworkers/all/byCitizen/{borger['id']}"
-        response = self._client.get(endpoint)
-        if response.status_code == 404:
+        response = self._client.get(endpoint).json()
+        if response is None:
             return None
 
         # behold kun aktive sagsbehandlere: caseworkerIsActive = 1, role = 1 og endDate = None
         aktive_sagsbehandlere = [
-            item for item in response.json() if item.get("caseworkerIsActive") == 1 and item.get("role") == 1 and item.get("endDate") is None
+            item for item in response if item.get("caseworkerIsActive") == 1 and item.get("role") == 1 and item.get("endDate") is None
+        ]
+        return aktive_sagsbehandlere
+    
+    def hent_aktive_sagsbehandlere(self, borger: dict) -> Optional[List[dict]]:
+        """
+        Hent aktive sagsbehandlere for en given borger.
+
+        :param borger: Borgerens data som en Dict
+        :return: Liste af aktive sagsbehandlere som Dicts eller None hvis fejlet
+        """
+        endpoint = f"/responsibleCaseworkers/all/byCitizen/{borger['id']}"
+        response = self._client.get(endpoint).json()
+        if response is None:
+            return None
+
+        # behold kun aktive sagsbehandlere: caseworkerIsActive = 1 og endDate = None
+        aktive_sagsbehandlere = [
+            item for item in response if item.get("caseworkerIsActive") == 1 and item.get("endDate") is None
         ]
         return aktive_sagsbehandlere
 

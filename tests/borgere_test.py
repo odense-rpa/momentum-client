@@ -112,6 +112,11 @@ def test_hent_ansvarlig_sagsbehandlere(momentum_manager: MomentumClientManager, 
     ansvarlige_sagsbehandlere = momentum_manager.borgere.hent_ansvarlige_sagsbehandlere(borger)
     assert ansvarlige_sagsbehandlere is not None
 
+def test_hent_aktive_sagsbehandlere(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    aktive_sagsbehandlere = momentum_manager.borgere.hent_aktive_sagsbehandlere(borger)
+    assert aktive_sagsbehandlere is not None
+
 def test_hent_aktør(momentum_manager: MomentumClientManager):
     aktør = momentum_manager.borgere.hent_aktør("476ebc9c-969d-424c-92f0-d582bf6176bb")
     assert aktør is not None
