@@ -201,17 +201,38 @@ class BorgereClient:
         ) -> Optional[dict]:
         """
         Opdaterer en borgers ansvarlige og kontaktpersoner.
-        Medarbejdertype er et tal, der giver typen:
-        * 0 = Øvrige
-        * 1 = Primære
+        
+        :param privat_kontaktperson: Flag som indikerer om det er en privat kontaktperson eller ej. Default er False.
+        :param borger: Borgerens data som en Dict
+        :param medarbejderid: Medarbejderens ID der skal påsættes borgeren
 
-        -----
-        Medarbejderrolle er den rolle der står i UI:
+        :param medarbejdertype: Medarbejdertype er et tal, der giver typen:
 
-        * OVRIG_ANSVARLIG = Øvrig Ansvarlig
-        * BESKAFTIGELSESSAGSBEHANDLER = Beskæftigelsessagsbehandler
+            0 = Øvrige
 
-        pr 12/12/24 er listen opdateret - ikke fuldent
+            1 = Primære
+
+        :param medarbejderrolle: Medarbejderrolle er den rolle der står i UI:
+
+            "Øvrig ansvarlig": "OVRIG_ANSVARLIG",
+            "Beskæftigelsessagsbehandler": "BESKAFTIGELSESSAGSBEHANDLER",
+            "Anden aktør": "ANDEN_AKTOR",
+            "Sanktionsteam": "74be96ca-5fd3-44c2-a951-cba7f3dc9c97",
+            "Fastholdelseskonsulent": "CASEWORKER_RESPONSIBILITY_FASTHOLDELSESKONSULENT",
+            "Jobkonsulent": "CASEWORKER_RESPONSIBILITY_JOBKONSULENT",
+            "Kommunal udslusningskoordinator": "KOMMUNAL_UDSLUSNINGSKOORDINATOR",
+            "Sekundær ansvarlig": "SEKUNDER_ANSVARLIG",
+            "Leder": "LEDER",
+            "Mentor": "MENTOR",
+            "Personlig jobformidler": "PERSONLIG_JOBFORMIDLER",
+            "Koordinerende sagsbehandler": "KOORDINERENDE_SAGSBEHANDLER",
+            "Virksomhedskonsulent": "VIRKSOMHEDSKONSULENT",
+            "Støtte-kontaktperson": "STØTTE-KONTAKTPERSON",
+            "Ydelsesmedarbejder": "YDELSESMEDARBEJDER",
+            "Tilbudsansvarlig": "TILBUDSANSVARLIG",
+            "Uddannelsesvejleder": "UDDANNELSESVEJLEDER"
+
+        pr 07/11/25 er listen opdateret - måske fuldent
         """
 
         if privat_kontaktperson == False:
