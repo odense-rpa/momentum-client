@@ -423,6 +423,37 @@ class BorgereClient:
             item for item in response if item.get("caseworkerIsActive") == 1 and item.get("endDate") is None
         ]
         return aktive_sagsbehandlere
+    
+    def hent_alle_private_kontaktpersoner(self, borger: dict) -> Optional[List[dict]]:
+        """
+        Hent alle private kontaktpersoner for en given borger.
+
+        :param borger: Borgerens data som en Dict
+        :return: Liste af private kontaktpersoner som Dicts eller None hvis fejlet
+        """
+        endpoint = f"/citizens/{borger['id']}/searchPrivateContacts"
+        body = {"term":" ","paging":{"pageNumber":1,"pageSize":999}}
+        response = self._client.post(endpoint, json=body).json()
+        if response is None:
+            return None
+
+        return response
+    
+    def hent_specifik_privat_kontaktperson(self, borger: dict, søgeterm: str) -> Optional[dict]:
+        """
+        Hent en specifik privat kontaktperson for en given borger baseret på søgeterm.
+
+        :param borger: Borgerens data som en Dict
+        :param søgeterm: Søgeterm for kontaktpersonen
+        :return: Kontaktperson data som en Dict eller None hvis ikke fundet
+        """
+        endpoint = f"/citizens/{borger['id']}/searchPrivateContacts"
+        body = {"term": søgeterm, "paging": {"pageNumber": 1, "pageSize": 10}}
+        response = self._client.post(endpoint, json=body).json()
+        if response is None:
+            return None
+
+        return response
 
     def hent_aktør(self, aktør_id: str) -> Optional[dict]:
         """
