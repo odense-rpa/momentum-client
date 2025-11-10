@@ -582,3 +582,76 @@ class BorgereClient:
         endpoint = f"/citizens/{borger['id']}/privateContacts/{structured_data['id']}"
         response = self._client.put(endpoint, json=structured_data)
         return response.status_code == 200
+    
+    def fjern_ansvarlig_eller_privat_kontaktperson(self, borger: dict, sagsbehandler_navn: str) -> bool:
+        """
+        Fjern en ansvarlig sagsbehandler eller privat kontaktperson fra en given borger.
+
+        :param borger: Borgerens data som en Dict
+        :param sagsbehandler_navn: Sagsbehandlerens navn der skal fjernes
+        :return: True hvis fjernelse lykkedes, ellers False
+        """
+        json_body = {
+            "caseworkers": [],
+            "privateContactPersons": []
+        }
+        
+        # henter alle borgers aktive sagsbehandlere og private kontaktpersoner med tilhørende JSON
+        endpoint_body = {
+            "columns": ["name", "type", "responsibilityTypeCode", "startDate", "endDate",],
+            "paging": {"pageNumber": 0, "pageSize": 50},
+            "sort": [
+                {"fieldName": "sortableEndDate", "ascending": False},
+                {"fieldName": "startDate", "ascending": False}
+            ],
+            "filters": [
+                {
+                    "fieldName" : "endDate",
+                    "values" : [
+                       None, None, True
+                    ],
+                }
+            ],
+            "searchFieldsDetails": [],
+            "impersonateCaseworkerId": None,
+            "term": ""
+        }
+        alle_borgers_sagsbehandlere_og_private_kontaktpersoner = self._client.post(f"/citizens/{borger['id']}/searchContacts", json=endpoint_body).json()
+
+        # fjern sagsbehandler eller privat kontaktperson baseret på navn:
+        
+
+
+        # hvis sagsbehandler["type"] == 2, så er det en private. Ellers er det en caseworker:
+        for item in alle_borgers_sagsbehandlere_og_private_kontaktpersoner["data"]:
+            # Skip personen der skal fjernes
+            if item.get("name", "").lower().strip() == sagsbehandler_navn.lower().strip():
+                continue  # Spring denne person over - den bliver ikke tilføjet til json_body
+            if item.get("type") == 2:  # Privat kontaktperson
+                json_body["privateContactPersons"].append({
+                    "actorId": str(item.get("actorId")),
+                    "responsibilityCodes": [item.get("responsibilityTypeCode")]
+                })
+            else:  # Sagsbehandler
+                # Determine responsibilities based on type
+                if item.get("type") == 1:
+                    responsibilities = []
+                else:
+                    responsibilities = [
+                        {
+                            "responsibilityCode": item.get("responsibilityTypeCode"),
+                            "showInJobnet": None
+                        }
+                    ]
+                
+                json_body["caseworkers"].append({
+                    "actorId": str(item.get("actorId")),
+                    "role": 1 if float(item.get("role", 0)) == 1.0 else 0,
+                    "responsibilities": responsibilities
+                })
+
+        # alle_borgers_sagsbehandlere_og_private_kontaktpersoner = self.hent_aktive_sagsbehandlere(borger)
+
+        endpoint = f"/citizens/{borger['id']}/responsibleactors"
+        response = self._client.put(endpoint, json=json_body)
+        return response.status_code == 200

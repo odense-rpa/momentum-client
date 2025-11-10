@@ -172,3 +172,12 @@ def test_inaktiver_privat_kontaktperson(momentum_manager: MomentumClientManager,
         kontaktperson_navn=kontaktperson_navn
     )
     assert inaktiveret is True
+
+def test_fjern_ansvarlig_eller_privat_kontaktperson(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    sagsbehandler_navn = "bugge2 ugge2"
+    fjernet = momentum_manager.borgere.fjern_ansvarlig_eller_privat_kontaktperson(
+        borger=borger,
+        sagsbehandler_navn=sagsbehandler_navn
+    )
+    assert fjernet is True
