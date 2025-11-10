@@ -122,10 +122,10 @@ def test_hent_alle_private_kontaktpersoner(momentum_manager: MomentumClientManag
     private_kontaktpersoner = momentum_manager.borgere.hent_alle_private_kontaktpersoner(borger)
     assert private_kontaktpersoner is not None
 
-def test_hent_specifik_privat_kontaktperson(momentum_manager: MomentumClientManager, test_cpr):
+def test_søg_specifik_privat_kontaktperson(momentum_manager: MomentumClientManager, test_cpr):
     borger = momentum_manager.borgere.hent_borger(test_cpr)
-    specifik_kontaktperson = momentum_manager.borgere.hent_specifik_privat_kontaktperson(
-        borger=borger, søgeterm="abcd"
+    specifik_kontaktperson = momentum_manager.borgere.søg_specifik_privat_kontaktperson(
+        borger=borger, søgeterm="unik"
     )
     assert specifik_kontaktperson is not None
 
@@ -164,3 +164,11 @@ def test_tilføj_privat_kontaktperson_til_borger(momentum_manager: MomentumClien
     )
     assert tilføjet_kontaktperson is not None
 
+def test_inaktiver_privat_kontaktperson(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    kontaktperson_navn = "bugge2"
+    inaktiveret = momentum_manager.borgere.inaktiver_privat_kontaktperson(
+        borger=borger,
+        kontaktperson_navn=kontaktperson_navn
+    )
+    assert inaktiveret is True

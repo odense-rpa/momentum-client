@@ -439,7 +439,7 @@ class BorgereClient:
 
         return response
     
-    def hent_specifik_privat_kontaktperson(self, borger: dict, søgeterm: str) -> Optional[dict]:
+    def søg_specifik_privat_kontaktperson(self, borger: dict, søgeterm: str) -> Optional[dict]:
         """
         Hent en specifik privat kontaktperson for en given borger baseret på søgeterm.
 
@@ -454,6 +454,20 @@ class BorgereClient:
             return None
 
         return response
+    
+    def hent_specifik_privat_kontaktperson(self, borger: dict, kontaktperson_id: str) -> Optional[dict]:
+        """
+        Hent en specifik privat kontaktperson for en given borger baseret på kontaktperson ID.
+
+        :param borger: Borgerens data som en Dict
+        :param kontaktperson_id: Kontaktpersonens ID
+        :return: Kontaktperson data som en Dict eller None hvis ikke fundet
+        """
+        endpoint = f"/citizens/{borger['id']}/privateContacts/{kontaktperson_id}"
+        response = self._client.get(endpoint)
+        if response.status_code == 404:
+            return None
+        return response.json()
 
     def hent_aktør(self, aktør_id: str) -> Optional[dict]:
         """
@@ -505,3 +519,66 @@ class BorgereClient:
         }
         response = self._client.post(endpoint, json=json_body)
         return response.json() if response.status_code == 200 else None
+    
+    def _strukturér_privat_kontaktperson_data(self, kontaktperson_json: dict, borger: dict) -> dict:
+        """
+        Strukturer privat kontaktperson data til det korrekte format for API opdatering.
+        
+        :param kontaktperson_json: Den rå kontaktperson data fra API'et
+        :param borger: Borgerens data som en Dict
+        :return: Struktureret kontaktperson data klar til API opdatering
+        """
+        # Sørg for at vi har de nødvendige felter med fallback værdier
+        structured_data = {
+            "email": {
+                "email": kontaktperson_json.get('email', {}).get('address', '') if isinstance(kontaktperson_json.get('email'), dict) else ""
+            },
+            "mobile": {
+                "number": kontaktperson_json.get('mobile', {}).get('number', '') if isinstance(kontaktperson_json.get('mobile'), dict) else "",
+                "isMobile": True
+            },
+            "phone": {
+                "number": kontaktperson_json.get('phone', {}).get('number', '') if isinstance(kontaktperson_json.get('phone'), dict) else "",
+                "isMobile": False
+            },
+            "address": {
+                "street": kontaktperson_json.get('address', {}).get('street', '') if isinstance(kontaktperson_json.get('address'), dict) else "",
+                "building": kontaktperson_json.get('address', {}).get('building', '') if isinstance(kontaktperson_json.get('address'), dict) else "",
+                "suite": kontaktperson_json.get('address', {}).get('suite', '') if isinstance(kontaktperson_json.get('address'), dict) else "",
+                "postalCode": kontaktperson_json.get('address', {}).get('postalCode', '') if isinstance(kontaktperson_json.get('address'), dict) else "",
+                "city": kontaktperson_json.get('address', {}).get('city', '') if isinstance(kontaktperson_json.get('address'), dict) else "",
+                "countryCode": kontaktperson_json.get('address', {}).get('countryCode') if isinstance(kontaktperson_json.get('address'), dict) else None,
+                "start": kontaktperson_json.get('address', {}).get('start') if isinstance(kontaktperson_json.get('address'), dict) else None,
+                "end": kontaktperson_json.get('address', {}).get('end') if isinstance(kontaktperson_json.get('address'), dict) else None
+            },
+            "description": kontaktperson_json.get('description', ''),
+            "title": kontaktperson_json.get('title', ''),
+            "isActive": kontaktperson_json.get('isActive', False),
+            "cpr": kontaktperson_json.get('cpr', ''),
+            "id": kontaktperson_json.get('id', ''),
+            "name": kontaktperson_json.get('name', kontaktperson_json.get('displayName', '')),
+            "citizenId": borger['id']
+        }
+        
+        return structured_data
+    
+    def inaktiver_privat_kontaktperson(self, borger: dict, kontaktperson_navn: str) -> bool:
+        """
+        Inaktiver en privat kontaktperson for en given borger.
+
+        :param borger: Borgerens data som en Dict
+        :param kontaktperson_navn: Navnet på den private kontaktperson der skal inaktiveres
+        :return: True hvis inaktivering lykkedes, ellers False
+        """
+        kontaktperson_data = self.søg_specifik_privat_kontaktperson(borger, kontaktperson_navn)
+        kontaktperson_json = self.hent_specifik_privat_kontaktperson(borger, kontaktperson_data["data"][0]['id'])
+        if kontaktperson_json is None:
+            return False
+        
+        # Strukturer data til korrekt format
+        structured_data = self._strukturér_privat_kontaktperson_data(kontaktperson_json, borger)
+        structured_data['isActive'] = False  # Sæt til inaktiv
+        
+        endpoint = f"/citizens/{borger['id']}/privateContacts/{structured_data['id']}"
+        response = self._client.put(endpoint, json=structured_data)
+        return response.status_code == 200
