@@ -256,6 +256,8 @@ class BorgereClient:
                 private_responsibility_code = "0acce8a4-d610-4a97-9c57-5abd4d14ae80"
             elif medarbejderrolle == "Partsrepræsentant":
                 private_responsibility_code = "fbe758a1-03aa-49c1-9ad5-27400b379cb7"
+            elif medarbejderrolle == "Nexus-sagsbehandler":
+                private_responsibility_code = "67e29cac-03b7-4386-8b2a-0e593b799b62"
             else:  # DUBU-sagsbehandler
                 private_responsibility_code = "de7834a1-7739-4918-b251-ed67c001bb75"
             json_body = {
@@ -308,12 +310,14 @@ class BorgereClient:
             responsibility_name = str(item["responsibilityName"])
             
             # Handle private contact persons separately
-            if responsibility_name in ["Bisidder", "Partsrepræsentant", "DUBU-sagsbehandler"]:
+            if responsibility_name in ["Bisidder", "Partsrepræsentant", "DUBU-sagsbehandler", "Nexus-sagsbehandler"]:
                 private_contact_id = str(item["id"])  # Use "id" instead of "caseworkerId"
                 if responsibility_name == "Bisidder":
                     private_responsibility_code = "0acce8a4-d610-4a97-9c57-5abd4d14ae80"
                 elif responsibility_name == "Partsrepræsentant":
                     private_responsibility_code = "fbe758a1-03aa-49c1-9ad5-27400b379cb7"
+                elif responsibility_name == "Nexus-sagsbehandler":
+                    private_responsibility_code = "67e29cac-03b7-4386-8b2a-0e593b799b62"
                 else:  # DUBU-sagsbehandler
                     private_responsibility_code = "de7834a1-7739-4918-b251-ed67c001bb75"
                 
