@@ -650,7 +650,7 @@ class BorgereClient:
                 
                 json_body["caseworkers"].append({
                     "actorId": str(item.get("actorId")),
-                    "role": 1 if float(item.get("role", 0)) == 1.0 else 0,
+                    "role": 1 if float(item.get("type", 0)) == 1.0 else 0,
                     "responsibilities": responsibilities
                 })
 
