@@ -631,6 +631,8 @@ class BorgereClient:
             # Skip personen der skal fjernes
             if item.get("name", "").lower().strip() == sagsbehandler_navn.lower().strip():
                 continue  # Spring denne person over - den bliver ikke tilføjet til json_body
+            if item.get("supplementalCaseName") is not None:
+                continue  # Spring denne person over - den bliver ikke tilføjet til json_body
             if item.get("type") == 2:  # Privat kontaktperson
                 json_body["privateContactPersons"].append({
                     "actorId": str(item.get("actorId")),
