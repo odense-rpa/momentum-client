@@ -417,16 +417,27 @@ class BorgereClient:
         :param borger: Borgerens data som en Dict
         :return: Liste af aktive sagsbehandlere som Dicts eller None hvis fejlet
         """
-        endpoint = f"/responsibleCaseworkers/all/byCitizen/{borger['id']}"
-        response = self._client.get(endpoint).json()
-        if response is None:
-            return None
-
-        # behold kun aktive sagsbehandlere: caseworkerIsActive = 1 og endDate = None
-        aktive_sagsbehandlere = [
-            item for item in response if item.get("caseworkerIsActive") == 1 and item.get("endDate") is None
-        ]
-        return aktive_sagsbehandlere
+        endpoint_body = {
+            "columns": ["name", "type", "responsibilityTypeCode", "startDate", "endDate",],
+            "paging": {"pageNumber": 0, "pageSize": 50},
+            "sort": [
+                {"fieldName": "sortableEndDate", "ascending": False},
+                {"fieldName": "startDate", "ascending": False}
+            ],
+            "filters": [
+                {
+                    "fieldName" : "endDate",
+                    "values" : [
+                       None, None, True
+                    ],
+                }
+            ],
+            "searchFieldsDetails": [],
+            "impersonateCaseworkerId": None,
+            "term": ""
+        }
+        response = self._client.post(f"/citizens/{borger['id']}/searchContacts", json=endpoint_body).json()
+        return response
     
     def hent_alle_private_kontaktpersoner(self, borger: dict) -> Optional[List[dict]]:
         """
