@@ -595,12 +595,12 @@ class BorgereClient:
         response = self._client.put(endpoint, json=structured_data)
         return response.status_code == 200
     
-    def fjern_ansvarlig_eller_privat_kontaktperson(self, borger: dict, sagsbehandler_navn: str) -> bool:
+    def fjern_ansvarlig_eller_privat_kontaktperson(self, borger: dict, email: str) -> bool:
         """
         Fjern en ansvarlig sagsbehandler eller privat kontaktperson fra en given borger.
 
         :param borger: Borgerens data som en Dict
-        :param sagsbehandler_navn: Sagsbehandlerens navn der skal fjernes
+        :param email: Emailen på den ansvarlige sagsbehandler eller private kontaktperson der skal fjernes
         :return: True hvis fjernelse lykkedes, ellers False
         """
         json_body = {
@@ -637,7 +637,7 @@ class BorgereClient:
         # hvis sagsbehandler["type"] == 2, så er det en private. Ellers er det en caseworker:
         for item in alle_borgers_sagsbehandlere_og_private_kontaktpersoner["data"]:
             # Skip personen der skal fjernes
-            if item.get("name", "").lower().strip() == sagsbehandler_navn.lower().strip():
+            if item.get("email", "").lower().strip() == email.lower().strip():
                 continue  # Spring denne person over - den bliver ikke tilføjet til json_body
             if item.get("supplementalCaseName") is not None:
                 continue  # Spring denne person over - den bliver ikke tilføjet til json_body
