@@ -133,11 +133,10 @@ def test_hent_aktør(momentum_manager: MomentumClientManager):
     aktør = momentum_manager.borgere.hent_aktør("1d8b1069-4844-4f5d-90df-649676df1907")
     assert aktør is not None
 
-def test_opret_privat_kontaktpersoner(momentum_manager: MomentumClientManager, test_cpr):
+def test_opret_privat_kontaktperson(momentum_manager: MomentumClientManager, test_cpr):
     borger = momentum_manager.borgere.hent_borger(test_cpr)
-    kontaktperson = momentum_manager.borgere.opret_privat_kontaktpersoner(
+    kontaktperson = momentum_manager.borgere.opret_privat_kontaktperson(
         borger=borger,
-        titel="Mr.",
         navn="Test Kontaktperson",
         email="test.kontaktperson@example.com",
         telefon="12345678"
@@ -147,10 +146,9 @@ def test_opret_privat_kontaktpersoner(momentum_manager: MomentumClientManager, t
 def test_tilføj_privat_kontaktperson_til_borger(momentum_manager: MomentumClientManager, test_cpr):
     borger = momentum_manager.borgere.hent_borger(test_cpr)
     # Opret først en privat kontaktperson
-    kontaktperson = momentum_manager.borgere.opret_privat_kontaktpersoner(
+    kontaktperson = momentum_manager.borgere.opret_privat_kontaktperson(
         borger=borger,
-        titel="Ms.2",
-        navn="aaa",
+        navn="bbb",
         email="test.tilføj.kontaktperson@example.com",
         telefon="87654321"
     )

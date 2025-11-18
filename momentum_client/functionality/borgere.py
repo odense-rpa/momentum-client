@@ -498,13 +498,12 @@ class BorgereClient:
             return None
         return response.json()
     
-    def opret_privat_kontaktpersoner(self, borger: dict,
-                                     titel: str, navn: str, email: str, telefon: str) -> Optional[dict]:
+    def opret_privat_kontaktperson(self, borger: dict,
+                                    navn: str, email: str, telefon: str) -> Optional[dict]:
         """
         Opret en privat kontaktperson for en given borger.
 
         :param borger: Borgerens data som en Dict
-        :param titel: Titel på kontaktpersonen
         :param navn: Navn på kontaktpersonen
         :param email: Email på kontaktpersonen
         :param telefon: Telefonnummer på kontaktpersonen
@@ -526,7 +525,6 @@ class BorgereClient:
                 "end": None
             },
             "description": "",
-            "title": titel,
             "isActive": False,
             "cpr": "",
             "name": navn,
