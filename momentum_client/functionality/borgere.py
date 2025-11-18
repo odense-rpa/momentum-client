@@ -259,7 +259,8 @@ class BorgereClient:
             elif medarbejderrolle == "Nexus-sagsbehandler":
                 private_responsibility_code = "67e29cac-03b7-4386-8b2a-0e593b799b62"
             else:  # DUBU-sagsbehandler
-                private_responsibility_code = "de7834a1-7739-4918-b251-ed67c001bb75"
+                # private_responsibility_code = "de7834a1-7739-4918-b251-ed67c001bb75"
+                private_responsibility_code = "a81ee47b-77a6-47f5-90dd-91bea366ea7f"
             json_body = {
                 "caseworkers": [],
                 "privateContactPersons": [
@@ -367,9 +368,7 @@ class BorgereClient:
         
         # Update json_body with processed data
         json_body["caseworkers"] = caseworkers
-        json_body["privateContactPersons"] = private_contacts
-        print(json_body)
-        
+        json_body["privateContactPersons"] = private_contacts        
 
         endpoint = f"/citizens/{borger['id']}/responsibleactors"
         response = self._client.put(endpoint, json=json_body)
