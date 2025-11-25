@@ -257,9 +257,8 @@ class BorgereClient:
             elif medarbejderrolle == "Partsrepræsentant":
                 private_responsibility_code = "fbe758a1-03aa-49c1-9ad5-27400b379cb7"
             elif medarbejderrolle == "Nexus-sagsbehandler":
-                private_responsibility_code = "67e29cac-03b7-4386-8b2a-0e593b799b62"
+                private_responsibility_code = "55a5c534-54b2-4f43-9ef9-ee535e10827a"
             else:  # DUBU-sagsbehandler
-                # private_responsibility_code = "de7834a1-7739-4918-b251-ed67c001bb75"
                 private_responsibility_code = "a81ee47b-77a6-47f5-90dd-91bea366ea7f"
             json_body = {
                 "caseworkers": [],
@@ -320,7 +319,7 @@ class BorgereClient:
                 elif responsibility_name == "Nexus-sagsbehandler": # KONTROLLÉR AT ID ER KORREKT - EDU & PROD DATA stemmer ikke overens nødvendigvis
                     private_responsibility_code = "55a5c534-54b2-4f43-9ef9-ee535e10827a"
                 else:  # DUBU-sagsbehandler
-                    private_responsibility_code = "de7834a1-7739-4918-b251-ed67c001bb75"
+                    private_responsibility_code = "a81ee47b-77a6-47f5-90dd-91bea366ea7f"
                 
                 private_contact = {
                     "actorId": private_contact_id,
