@@ -676,10 +676,9 @@ class BorgereClient:
         :param borger: Borgerens data som en Dict
         :return: Personvisitationstatus som en Dict eller None hvis fejlet
         """
-        endpoint = f"/citizens/{borger['id']}/personVisitations/status"
+        endpoint = f"/citizens/{borger['id']}/personvisitationstatus"
         response = self._client.get(endpoint)
         if response.status_code == 404:
             return None
         return response.json()
-    
     
