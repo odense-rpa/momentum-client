@@ -668,3 +668,18 @@ class BorgereClient:
         endpoint = f"/citizens/{borger['id']}/responsibleactors"
         response = self._client.put(endpoint, json=json_body)
         return response.status_code == 200
+
+    def hent_personvisitationstatus(self, borger: dict) -> Optional[dict]:
+        """
+        Hent en borgers personvisitationstatus.
+
+        :param borger: Borgerens data som en Dict
+        :return: Personvisitationstatus som en Dict eller None hvis fejlet
+        """
+        endpoint = f"/citizens/{borger['id']}/personVisitations/status"
+        response = self._client.get(endpoint)
+        if response.status_code == 404:
+            return None
+        return response.json()
+    
+    
