@@ -682,3 +682,30 @@ class BorgereClient:
             return None
         return response.json()
     
+
+    def hent_jobsøgningsdefinition(self, borger: dict) -> Optional[dict]:
+        """
+        Hent en borgers jobsøgningsdefinition.
+
+        :param borger: Borgerens data som en Dict
+        :return: Jobsøgningsdefinition som en Dict eller None hvis fejlet
+        """
+        endpoint = f"/citizens/{borger['id']}/jobSearchDefinition"
+        response = self._client.get(endpoint)
+        if response.status_code == 404:
+            return None
+        return response.json()
+    
+
+    def hent_joblog(self, borger: dict) -> Optional[dict]:
+        """
+        Hent en borgers joblog.
+
+        :param borger: Borgerens data som en Dict
+        :return: Joblog som en Dict eller None hvis fejlet
+        """
+        endpoint = f"/citizens/{borger['id']}/joblog"
+        response = self._client.get(endpoint)
+        if response.status_code == 404:
+            return None
+        return response.json()
