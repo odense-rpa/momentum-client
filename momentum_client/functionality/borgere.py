@@ -29,7 +29,7 @@ class BorgereClient:
         
         return response.json()
     
-    def hent_borgere(self, filters: dict, søgeterm = "*") -> Optional[dict]:
+    def hent_borgere(self, filters: List[dict], søgeterm = "*") -> Optional[dict]:
         """
         Hent borgere med angivne filtre og søgeterm.
         :param filters: Dictionary of filters to apply
