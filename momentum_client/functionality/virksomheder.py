@@ -1,5 +1,4 @@
 from typing import Optional
-import datetime
 from momentum_client.client import MomentumClient
 
 
