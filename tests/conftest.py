@@ -55,6 +55,10 @@ def markeringer_client(momentum_manager):
     """Returns the MarkeringerClient for marking-related operations."""
     return momentum_manager.markeringer
 
+@pytest.fixture(scope="session")
+def opgaver_client(momentum_manager):
+    """Returns the OpgaverClient for task-related operations."""
+    return momentum_manager.opgaver
 
 @pytest.fixture(scope="session")
 def test_cpr():
