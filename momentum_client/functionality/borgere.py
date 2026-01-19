@@ -1,6 +1,7 @@
 from typing import Optional, List
 import datetime
 from enum import Enum
+from httpx import HTTPStatusError
 from momentum_client.client import MomentumClient
 
 
@@ -37,10 +38,38 @@ class BorgereClient:
         :return: List of citizens matching the criteria or None if not found
         """
         endpoint = f"citizensearch"
-        response = self._client.post(endpoint, json={"filters": filters, "søgeterm": søgeterm})
-        if response.status_code == 404:
-            return None
-        return response.json()
+        all_data = []
+        page_number = 0
+        has_more = True
+        
+        for _ in iter(int, 1):
+            if not has_more:
+                break
+                
+            json_body = {
+                "filters": filters,
+                "søgeterm": søgeterm,
+                "paging": {
+                    "pageNumber": page_number,
+                    "pageSize": 1000
+                }
+            }
+            try:
+                response = self._client.post(endpoint, json=json_body)
+            except HTTPStatusError as e:
+                if e.response.status_code == 504:
+                    raise TimeoutError("Forespørgslen timed out.")
+                raise
+            
+            if response.status_code == 404:
+                return None
+            
+            data = response.json()
+            all_data.extend(data.get("data", []))
+            has_more = data.get("hasMore", False)
+            page_number += 1
+        
+        return {"data": all_data}
     
     def hent_markering(self, markeringsnavn = "ØF-JC-AC-IT-emnebank") -> Optional[dict]:
         """
