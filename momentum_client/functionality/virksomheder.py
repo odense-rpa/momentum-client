@@ -1,12 +1,13 @@
 from typing import Optional
 from momentum_client.client import MomentumClient
+from typing import Optional, List
 
 
 class VirksomhederClient:
     def __init__(self, client: MomentumClient):
         self._client = client
 
-    def hent_virksomheder(self, filters: dict = None, søgeterm: str = "*", sidetal_resultater: int = 0, antal_resultater: int = 1000) -> Optional[dict]:
+    def hent_virksomheder(self, filters: List[dict], søgeterm: str = "*") -> Optional[dict]:
         """
         Hent virksomheder med angivne filtre og søgeterm.
         
@@ -17,26 +18,41 @@ class VirksomhederClient:
         :return: List of production units matching the criteria or None if not found
         """
         endpoint = "punits/searchproductionunits"
+        sideindex = 0
+        virksomheder = []
+        has_more = True
         
-        # Prepare the request body
-        body = {
-            "søgeterm": søgeterm,
-            "paging": {
-                "pageNumber": sidetal_resultater,
-                "pageSize": antal_resultater
+        while has_more:
+            # Klargør body
+            body = {
+                "paging": {
+                    "pageNumber": sideindex,
+                    "pageSize": 6000
+                },
+                
+                "filters": filters,
+                "term": søgeterm
             }
-        }
+            
+            response = self._client.post(endpoint, json=body)
+            
+            if response.status_code == 404:
+                return None
+            
+            data = response.json()
+            
+            # Tilføj resultaterne til listen
+            if data is not None:
+                virksomheder.extend(data['data'])
+            
+            # Tjek om der er flere sider, sikkerhedstjek på mere end 110 sider
+            if data['hasMore'] == False or sideindex > 110:
+                has_more = False
+            
+            # Inkrementer sideindex for næste kald
+            sideindex += 1
         
-        # Add filters if provided
-        if filters:
-            body["filters"] = filters
-        
-        response = self._client.post(endpoint, json=body)
-        
-        if response.status_code == 404:
-            return None
-        
-        return response.json()
+        return {'data': virksomheder}
     
     def hent_virksomheder_med_cvr(self, cvr: str) -> Optional[dict]:
         """
