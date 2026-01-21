@@ -22,3 +22,10 @@ def test_opret_opgave(momentum_manager: MomentumClientManager, test_cpr):
     assert opgave is not None
     assert opgave.get("title") == titel
     assert opgave.get("description") == beskrivelse
+
+def test_hent_opgaver(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+
+    opgaver = momentum_manager.opgaver.hent_opgaver(borger=borger)
+
+    assert isinstance(opgaver, list)
