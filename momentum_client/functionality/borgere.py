@@ -738,3 +738,18 @@ class BorgereClient:
         if response.status_code == 404:
             return None
         return response.json()
+    
+    def hent_uddannelser(self, borger: dict) -> Optional[dict]:
+        """
+        Hent en borgers uddannelser.
+
+        :param borger: Borgerens data som en Dict
+        :return: Uddannelser som en Dict eller None hvis fejlet
+        """
+        endpoint = f"/citizens/{borger['id']}/cvs/"
+        response = self._client.get(endpoint)
+        if response.status_code == 404:
+            return None
+        # vi er kun interesseret i uddannelserne:
+        uddannelser = response.json().get("educations", [])
+        return uddannelser

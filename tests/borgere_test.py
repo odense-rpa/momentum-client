@@ -180,3 +180,8 @@ def test_fjern_ansvarlig_eller_privat_kontaktperson(momentum_manager: MomentumCl
         email=email_der_skal_fjernes
     )
     assert fjernet is True
+
+def test_hent_uddannelser(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    uddannelser = momentum_manager.borgere.hent_uddannelser(borger)
+    assert uddannelser is not None
