@@ -150,8 +150,8 @@ class MomentumClient:
         
         søgeskabelon = {
             "term": f"{søgeterm}",
-            "size": f"{BATCH_STØRRELSE}",
-            "skip": f"{spring_over}",
+            "size": BATCH_STØRRELSE,
+            "skip": spring_over,
             "allowedCategories": [
                 "Citizen",
                 "Company",
@@ -163,8 +163,10 @@ class MomentumClient:
                 "Course"
             ],
             "parentId": None,
-            "isActive": f"{str(kun_active).lower()}",
-            "hasUserId": None
+            "isActive": kun_active,
+            "hasUserId": None,
+            "isPhoneNumbersOnly": None,
+            "includeInternalUsers": False
         }
 
         søgning = self.post("/search", json=søgeskabelon).json()
