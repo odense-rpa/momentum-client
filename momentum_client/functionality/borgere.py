@@ -445,7 +445,7 @@ class BorgereClient:
         :return: Liste af aktive sagsbehandlere som Dicts eller None hvis fejlet
         """
         endpoint_body = {
-            "columns": ["name", "type", "responsibilityTypeCode", "startDate", "endDate",],
+            "columns": ["name", "type", "responsibilityTypeCode", "startDate", "endDate", "mobile", "email", "supplementalCaseTypeId"],
             "paging": {"pageNumber": 0, "pageSize": 50},
             "sort": [
                 {"fieldName": "sortableEndDate", "ascending": False},
