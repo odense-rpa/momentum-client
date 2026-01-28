@@ -11,6 +11,7 @@ from .functionality.borgere import BorgereClient
 from .functionality.virksomheder import VirksomhederClient
 from .functionality.markeringer import MarkeringerClient
 from .functionality.opgaver import OpgaverClient
+from .functionality.taksonomier import TaksonomierClient
 
 
 class MomentumClientManager:
@@ -62,6 +63,7 @@ class MomentumClientManager:
         self._virksomheder_client: Optional[VirksomhederClient] = None
         self._markeringer_client: Optional[MarkeringerClient] = None
         self._opgaver_client: Optional[OpgaverClient] = None
+        self._taksonomier_client: Optional[TaksonomierClient] = None
 
     @property
     def momentum_client(self) -> MomentumClient:
@@ -103,3 +105,10 @@ class MomentumClientManager:
         if self._opgaver_client is None:
             self._opgaver_client = OpgaverClient(self.momentum_client)
         return self._opgaver_client
+
+    @property
+    def taksonomier(self) -> TaksonomierClient:
+        """Get the TaksonomierClient (lazy-loaded)."""
+        if self._taksonomier_client is None:
+            self._taksonomier_client = TaksonomierClient(self.momentum_client)
+        return self._taksonomier_client

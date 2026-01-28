@@ -230,3 +230,13 @@ class VirksomhederClient:
             return True
         
         return False
+    
+    def hent_udvidet_virksomhedsinfo(self, virksomhedsId:str) -> Optional[dict]:
+        endpoint = f"/punits/{virksomhedsId}"
+
+        response = self._client.get(endpoint)
+
+        if response.status_code == 404:
+            return None
+
+        return response.json()

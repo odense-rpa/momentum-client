@@ -115,3 +115,9 @@ def test_ændr_kontaktpersons_status_til_aktiv(momentum_manager: MomentumClientM
     response = momentum_manager.virksomheder.ændr_kontaktpersons_status(test_kontaktpersonId, status=True)
     assert response is not None
     assert isinstance(response, bool)
+
+def test_hent_udvidet_virksomhedsinfo(momentum_manager: MomentumClientManager):
+    test_virksomhedsid = "4224e7fb-40c9-409c-938e-8aae62d5d753"
+    response = momentum_manager.virksomheder.hent_udvidet_virksomhedsinfo(test_virksomhedsid)
+    assert response is not None
+    assert isinstance(response, dict)
