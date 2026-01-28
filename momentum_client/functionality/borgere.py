@@ -748,7 +748,7 @@ class BorgereClient:
         """
         endpoint = f"/citizens/{borger['id']}/cvs/"
         response = self._client.get(endpoint)
-        if response.status_code == 404:
+        if response.status_code in (404, 204):
             return None
         # vi er kun interesseret i uddannelserne:
         uddannelser = response.json().get("educations", [])
