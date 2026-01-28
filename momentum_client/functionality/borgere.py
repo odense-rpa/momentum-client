@@ -455,7 +455,7 @@ class BorgereClient:
                 {
                     "fieldName" : "endDate",
                     "values" : [
-                       None, None, True
+                       None, None, "true"
                     ],
                 }
             ],
