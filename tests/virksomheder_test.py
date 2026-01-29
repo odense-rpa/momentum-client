@@ -116,8 +116,25 @@ def test_ændr_kontaktpersons_status_til_aktiv(momentum_manager: MomentumClientM
     assert response is not None
     assert isinstance(response, bool)
 
-def test_hent_udvidet_virksomhedsinfo(momentum_manager: MomentumClientManager):
-    test_virksomhedsid = "4224e7fb-40c9-409c-938e-8aae62d5d753"
-    response = momentum_manager.virksomheder.hent_udvidet_virksomhedsinfo(test_virksomhedsid)
+def test_hent_virksomhedsoverblik(momentum_manager: MomentumClientManager):
+    test_virksomhedsid = "c94f739e-732d-425d-8deb-f8128db15193"
+    response = momentum_manager.virksomheder.hent_en_virksomheds_overblik(test_virksomhedsid)
     assert response is not None
     assert isinstance(response, dict)
+
+def test_opdater_sagsbehandlere_på_virksomhedsoverblik(momentum_manager: MomentumClientManager):
+    test_virksomhedsid = ""
+    caseworkerid = ""
+    query = [
+        {
+            "caseworkerId": caseworkerid,
+            "responsibilityCode": "VIRKSOMHEDSKONSULENT",
+            "role": 0,
+            "showInJobnet": None
+        }
+    ]
+    
+    response = momentum_manager.virksomheder.opdater_sagsbehandlere_på_overblik(test_virksomhedsid, query)
+
+    assert response is not None
+    assert response["responsibleCaseworkers"][0]["caseworkerId"] == caseworkerid

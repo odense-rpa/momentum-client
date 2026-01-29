@@ -1,7 +1,15 @@
 from datetime import datetime
+from enum import Enum
 from momentum_client.client import MomentumClient
 
+
 class OpgaverClient:
+    class Status(Enum):
+        """Status værdier for opgaver i Momentum."""
+        gennemført = 0
+        aflyst = 1
+        igang = 3
+    
     def __init__(self, client: MomentumClient):
         self._client = client
 
@@ -80,3 +88,14 @@ class OpgaverClient:
             page_number += 1
 
         return alle_opgaver
+    
+    def opdater_opgave_status(self, opgaveid: str, status: Status) -> dict:
+        """Ændre status på en opgave."""
+        endpoint = f"tasks/{opgaveid}/{status.value}"
+
+        response = self._client.put(endpoint)
+
+        if response.status_code == 400:
+            raise Exception("Fejl, kunne ikke ændre status")
+        
+        return response.json()

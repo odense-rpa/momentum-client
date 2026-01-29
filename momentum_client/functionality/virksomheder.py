@@ -231,12 +231,19 @@ class VirksomhederClient:
         
         return False
     
-    def hent_udvidet_virksomhedsinfo(self, virksomhedsId:str) -> Optional[dict]:
+    def hent_en_virksomheds_overblik(self, virksomhedsId:str) -> Optional[dict]:
         endpoint = f"/punits/{virksomhedsId}"
 
         response = self._client.get(endpoint)
 
         if response.status_code == 404:
             return None
+
+        return response.json()
+    
+    def opdater_sagsbehandlere_på_overblik(self, virksomhedsId: str, opdateret_sagsbehandlere: dict) -> dict:
+        endpoint = f"/punits/{virksomhedsId}/responsiblecaseworkers"
+
+        response = self._client.put(endpoint, opdateret_sagsbehandlere)
 
         return response.json()

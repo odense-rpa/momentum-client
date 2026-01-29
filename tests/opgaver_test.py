@@ -29,3 +29,11 @@ def test_hent_opgaver(momentum_manager: MomentumClientManager, test_cpr):
     opgaver = momentum_manager.opgaver.hent_opgaver(borger=borger)
 
     assert isinstance(opgaver, list)
+
+def test_opdater_opgavestatus(momentum_manager: MomentumClientManager):
+    status = momentum_manager.opgaver.Status.gennemført
+    opgaveid = ""
+
+    response = momentum_manager.opgaver.opdater_opgave_status(opgaveid, status)
+
+    assert response is not None
