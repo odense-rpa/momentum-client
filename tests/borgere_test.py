@@ -35,7 +35,7 @@ def test_hent_markering_specific(momentum_manager: MomentumClientManager):
 
 def test_opret_markering(momentum_manager: MomentumClientManager, test_cpr):
     # Test opret_markering med en gyldig markering
-    markeringsnavn = "Teknisk forlængelse - sygedagpenge"
+    markeringsnavn = "TEST - RPA TYRA ROBOT - TEST - BORGER"
     # IKKE COMMIT CPR-nummer i test
     borger = momentum_manager.borgere.hent_borger(test_cpr)
     start_dato = datetime.date.today()
