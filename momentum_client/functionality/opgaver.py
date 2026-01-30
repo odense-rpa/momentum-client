@@ -89,6 +89,53 @@ class OpgaverClient:
 
         return alle_opgaver
     
+    def hent_opgaver_på_virksomhed(self, virksomhedsid:str) -> list[dict] | None:
+        
+        opgave_liste = []
+        antal_hentet_opgaver = 150
+        side_nummer = 0
+        endpoint = "/tasks/company"
+        flere_sider = True
+
+        while flere_sider:
+            json_skabelon = {
+                "columns": [],
+                "filters": [
+                    {
+                        "fieldName": "productionUnitId",
+                        "values": [virksomhedsid]
+                    }
+                ],
+                "sort": [
+                    {
+                        "fieldName": "deadline",
+                        "ascending": True
+                    }
+                ],
+                "paging": {
+                    "pageNumber": side_nummer,
+                    "pageSize": antal_hentet_opgaver
+                }
+            }
+
+            response = self._client.post(endpoint, json=json_skabelon)
+                
+            if response.status_code == 404:
+                return None
+            
+            data = response.json()
+
+            if data is not None:
+                opgave_liste.extend(data['data'])
+                
+            # Tjek om der er flere sider
+            if len(opgave_liste) >= data['totalSearchCount'] or side_nummer > 20:
+                flere_sider = False
+            
+            side_nummer += 1
+        
+        return opgave_liste
+    
     def opdater_opgave_status(self, opgaveid: str, status: Status) -> dict:
         """Ændre status på en opgave."""
         endpoint = f"tasks/{opgaveid}/{status.value}"

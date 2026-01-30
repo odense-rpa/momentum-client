@@ -37,3 +37,11 @@ def test_opdater_opgavestatus(momentum_manager: MomentumClientManager):
     response = momentum_manager.opgaver.opdater_opgave_status(opgaveid, status)
 
     assert response is not None
+
+def test_hent_opgaver_på_virksomhed(momentum_manager: MomentumClientManager):
+    virksomhedsid = "00a69184-d845-4a20-9027-1566b9f6d9cf"
+
+    response = momentum_manager.opgaver.hent_opgaver_på_virksomhed(virksomhedsid)
+
+    assert response is not None
+    assert len(response) > 2
