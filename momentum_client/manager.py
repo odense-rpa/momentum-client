@@ -12,6 +12,7 @@ from .functionality.virksomheder import VirksomhederClient
 from .functionality.markeringer import MarkeringerClient
 from .functionality.opgaver import OpgaverClient
 from .functionality.taksonomier import TaksonomierClient
+from .functionality.journalnotater import JournalnotaterClient
 
 
 class MomentumClientManager:
@@ -64,6 +65,7 @@ class MomentumClientManager:
         self._markeringer_client: Optional[MarkeringerClient] = None
         self._opgaver_client: Optional[OpgaverClient] = None
         self._taksonomier_client: Optional[TaksonomierClient] = None
+        self._journalnotater_client: Optional[JournalnotaterClient] = None
 
     @property
     def momentum_client(self) -> MomentumClient:
@@ -112,3 +114,10 @@ class MomentumClientManager:
         if self._taksonomier_client is None:
             self._taksonomier_client = TaksonomierClient(self.momentum_client)
         return self._taksonomier_client
+
+    @property
+    def journalnotater(self) -> JournalnotaterClient:
+        """Get the JournalnotaterClient (lazy-loaded)."""
+        if self._journalnotater_client is None:
+            self._journalnotater_client = JournalnotaterClient(self.momentum_client)
+        return self._journalnotater_client
