@@ -13,7 +13,7 @@ class OpgaverClient:
     def __init__(self, client: MomentumClient):
         self._client = client
 
-    def opret_opgave(self, borger: dict, medarbejdere: list[dict], forfaldsdato: datetime, titel: str, beskrivelse: str) -> dict:
+    def opret_opgave(self, borger: dict, medarbejdere: list[dict], forfaldsdato: datetime, titel: str, beskrivelse: str, borger_opgave: bool = True) -> dict:
         """
         Opret en opgave for en given borger.
 
@@ -33,7 +33,7 @@ class OpgaverClient:
             "taskType": None,
             "reference": {
                 "id": borger["id"] if isinstance(borger, dict) else borger, # TODO: Udvid til at kunne håndtere andre typer referencer
-                "type": "CITIZEN"
+                "type": "CITIZEN" if borger_opgave else "PRODUCTIONUNIT"
             }
         }
        

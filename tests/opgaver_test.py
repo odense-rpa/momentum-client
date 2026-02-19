@@ -1,7 +1,7 @@
 import pytest
 from momentum_client.manager import MomentumClientManager
 
-def test_opret_opgave(momentum_manager: MomentumClientManager, test_cpr):
+def test_opret_opgave_på_borger(momentum_manager: MomentumClientManager, test_cpr):
     borger = momentum_manager.borgere.hent_borger(test_cpr)
     sagsbehandler = momentum_manager.borgere.hent_sagsbehandler("jakkw")
     medarbejdere = [sagsbehandler] if sagsbehandler else []
@@ -17,6 +17,29 @@ def test_opret_opgave(momentum_manager: MomentumClientManager, test_cpr):
         forfaldsdato=forfaldsdato,
         titel=titel,
         beskrivelse=beskrivelse
+    )
+
+    assert opgave is not None
+    assert opgave.get("title") == titel
+    assert opgave.get("description") == beskrivelse
+
+def test_opret_opgave_på_virksomhed(momentum_manager: MomentumClientManager):
+    virkomshed = momentum_manager.virksomheder.hent_virksomhed_med_cvr_og_pnummer("35954716", "1003225055")
+    sagsbehandler = momentum_manager.borgere.hent_sagsbehandler("andja")
+    medarbejdere = [sagsbehandler]
+
+    from datetime import datetime, timedelta
+    forfaldsdato = datetime.now() + timedelta(days=7)
+    titel = "Test Opgave"
+    beskrivelse = "Dette er en test opgave oprettet via unit test."
+
+    opgave = momentum_manager.opgaver.opret_opgave(
+        borger=virkomshed,
+        medarbejdere=medarbejdere,
+        forfaldsdato=forfaldsdato,
+        titel=titel,
+        beskrivelse=beskrivelse,
+        borger_opgave=False
     )
 
     assert opgave is not None
