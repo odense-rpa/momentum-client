@@ -146,3 +146,34 @@ class OpgaverClient:
             raise Exception("Fejl, kunne ikke ændre status")
         
         return response.json()
+    
+    def søg_borger_opgaver(self, søge_filtre: dict, side_størrelse: int = 100) -> list[dict]:
+        """
+        Søg efter opgaver for en given borger.
+
+        :param søge_filtre: Dictionary med filtre for søgningen
+        :param side_størrelse: Antal opgaver pr. side
+        :return: Liste af opgaver som dictionaries
+        """
+        sidenummer = 0        
+        endpoint = "/tasks/citizen"
+        samlede_opgaver = []
+
+        while True:
+            response = self._client.post(endpoint, json=søge_filtre)
+            response.raise_for_status()
+
+            if response.status_code != 200:
+                break
+
+            payload = response.json()
+            samlede_opgaver.extend(payload.get("data", []))
+
+            total_search_count = payload.get("totalSearchCount", len(samlede_opgaver))
+            if total_search_count <= side_størrelse * (sidenummer + 1):
+                break
+
+            sidenummer += 1
+            søge_filtre["paging"]["pageNumber"] = sidenummer
+
+        return samlede_opgaver

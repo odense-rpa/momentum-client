@@ -68,3 +68,49 @@ def test_hent_opgaver_på_virksomhed(momentum_manager: MomentumClientManager):
 
     assert response is not None
     assert len(response) > 2
+
+def test_søg_borger_opgaver(momentum_manager: MomentumClientManager):
+    søge_filtre = {
+        "columns": [
+            "title",
+            "citizenId",
+            "deadline",
+            "type",
+            "referenceId",
+            "assignees",
+            "state",
+            "createdByName",
+            "citizenDisplayName",
+            "cpr",
+            "targetGroup",
+            "updatedByName",
+            "assigneesTeamNames"
+        ],
+        "filters": [
+            {
+            "fieldName": "title",
+            "values": [
+                "Opgave - Placering oprettet på baggrund af bevilling i VITAS"
+            ]
+            },
+            {
+            "fieldName": "state",
+            "values": [
+                "0"
+            ]
+            }
+        ],
+        "sort": [
+            {
+            "fieldName": "title",
+            "ascending": True
+            }
+        ],
+        "paging": {
+            "pageNumber": 0,
+            "pageSize": 100
+        }
+    }
+
+    opgaver = momentum_manager.opgaver.søg_borger_opgaver(søge_filtre)
+    assert len(opgaver) > 0
