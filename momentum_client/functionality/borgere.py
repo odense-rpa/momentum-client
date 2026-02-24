@@ -753,3 +753,16 @@ class BorgereClient:
         # vi er kun interesseret i uddannelserne:
         uddannelser = response.json().get("educations", [])
         return uddannelser
+
+    def hent_målgrupper(self, borger: dict) -> Optional[dict]:
+        """
+        Hent en borgers målgrupper.
+
+        :param borger: Borgerens data som en Dict
+        :return: Målgrupper som en Dict eller None hvis fejlet
+        """
+        endpoint = f"/classifications/{borger['id']}"
+        response = self._client.get(endpoint)
+        if response.status_code == 404:
+            return None
+        return response.json()

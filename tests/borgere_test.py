@@ -185,3 +185,8 @@ def test_hent_uddannelser(momentum_manager: MomentumClientManager, test_cpr):
     borger = momentum_manager.borgere.hent_borger(test_cpr)
     uddannelser = momentum_manager.borgere.hent_uddannelser(borger)
     assert uddannelser is not None
+
+def test_hent_målgrupper(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    målgrupper = momentum_manager.borgere.hent_målgrupper(borger)
+    assert målgrupper is not None
