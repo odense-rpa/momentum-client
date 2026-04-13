@@ -648,7 +648,7 @@ class BorgereClient:
                 {
                     "fieldName" : "endDate",
                     "values" : [
-                       None, None, True
+                       None, None, "true"
                     ],
                 }
             ],
@@ -657,10 +657,6 @@ class BorgereClient:
             "term": ""
         }
         alle_borgers_sagsbehandlere_og_private_kontaktpersoner = self._client.post(f"/citizens/{borger['id']}/searchContacts", json=endpoint_body).json()
-
-        # fjern sagsbehandler eller privat kontaktperson baseret på navn:
-        
-
 
         # hvis sagsbehandler["type"] == 2, så er det en private. Ellers er det en caseworker:
         for item in alle_borgers_sagsbehandlere_og_private_kontaktpersoner["data"]:
