@@ -343,9 +343,9 @@ class BorgereClient:
                 private_contact_id = str(item["id"])  # Use "id" instead of "caseworkerId"
                 if responsibility_name == "Bisidder": # KONTROLLÉR AT ID ER KORREKT - EDU & PROD DATA stemmer ikke overens nødvendigvis
                     private_responsibility_code = "0acce8a4-d610-4a97-9c57-5abd4d14ae80"
-                elif responsibility_name == "Partsrepræsentant": # KONTROLLÉR AT ID ER KORREKT - EDU & PROD DATA stemmer ikke overens nødvendigvis
-                    private_responsibility_code = "fbe758a1-03aa-49c1-9ad5-27400b379cb7"
-                elif responsibility_name == "Nexus-sagsbehandler": # KONTROLLÉR AT ID ER KORREKT - EDU & PROD DATA stemmer ikke overens nødvendigvis
+                elif responsibility_name == "Partsrepræsentant": 
+                    private_responsibility_code = "6044f4f7-0731-48c3-aaa2-61a4181956c9"
+                elif responsibility_name == "Nexus-sagsbehandler": 
                     private_responsibility_code = "55a5c534-54b2-4f43-9ef9-ee535e10827a"
                 else:  # DUBU-sagsbehandler
                     private_responsibility_code = "a81ee47b-77a6-47f5-90dd-91bea366ea7f"
