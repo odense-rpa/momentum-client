@@ -336,7 +336,7 @@ class BorgereClient:
         
         for item in active_caseworkers:
             actor_id = str(item["caseworkerId"])
-            responsibility_name = str(item["responsibilityName"])
+            responsibility_name = str(item["responsibilityName"]).strip()  # Ensure it's a string and remove any leading/trailing whitespace
             
             # Handle private contact persons separately
             if responsibility_name in ["Bisidder", "Partsrepræsentant", "DUBU-sagsbehandler", "Nexus-sagsbehandler"]:
