@@ -13,7 +13,7 @@ class OpgaverClient:
     def __init__(self, client: MomentumClient):
         self._client = client
 
-    def opret_opgave(self, borger: dict | None, medarbejdere: list[dict], forfaldsdato: datetime, titel: str, beskrivelse: str, task_type: str | None = None, borger_opgave: bool = True) -> dict:
+    def opret_opgave(self, borger: dict | None, medarbejdere: list[dict], forfaldsdato: datetime, titel: str, beskrivelse: str, task_type: int | None = None, borger_opgave: bool = True) -> dict:
         """
         Opret en opgave for en given borger.
 
