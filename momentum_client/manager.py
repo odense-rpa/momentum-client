@@ -13,6 +13,7 @@ from .functionality.markeringer import MarkeringerClient
 from .functionality.opgaver import OpgaverClient
 from .functionality.taksonomier import TaksonomierClient
 from .functionality.journalnotater import JournalnotaterClient
+from .functionality.vitas import VitasClient
 
 
 class MomentumClientManager:
@@ -66,6 +67,7 @@ class MomentumClientManager:
         self._opgaver_client: Optional[OpgaverClient] = None
         self._taksonomier_client: Optional[TaksonomierClient] = None
         self._journalnotater_client: Optional[JournalnotaterClient] = None
+        self._vitas_client: Optional[VitasClient] = None
 
     @property
     def momentum_client(self) -> MomentumClient:
@@ -121,3 +123,10 @@ class MomentumClientManager:
         if self._journalnotater_client is None:
             self._journalnotater_client = JournalnotaterClient(self.momentum_client)
         return self._journalnotater_client
+
+    @property
+    def vitas(self) -> VitasClient:
+        """Get the VitasClient (lazy-loaded)."""
+        if self._vitas_client is None:
+            self._vitas_client = VitasClient(self.momentum_client)
+        return self._vitas_client
