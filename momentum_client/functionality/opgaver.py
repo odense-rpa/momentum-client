@@ -13,7 +13,7 @@ class OpgaverClient:
     def __init__(self, client: MomentumClient):
         self._client = client
 
-    def opret_opgave(self, borger: dict | None, medarbejdere: list[dict], forfaldsdato: datetime, titel: str, beskrivelse: str, borger_opgave: bool = True) -> dict:
+    def opret_opgave(self, borger: dict | None, medarbejdere: list[dict], forfaldsdato: datetime, titel: str, beskrivelse: str, task_type: str | None = None, borger_opgave: bool = True) -> dict:
         """
         Opret en opgave for en given borger.
 
@@ -31,7 +31,7 @@ class OpgaverClient:
             "description": beskrivelse,
             "deadline": forfaldsdato.isoformat(),
             "assignedActorsId": [medarbejder["id"] if isinstance(medarbejder, dict) else medarbejder for medarbejder in medarbejdere],
-            "taskType": None,
+            "taskType": task_type,
             "reference": None
         }
         if borger:
