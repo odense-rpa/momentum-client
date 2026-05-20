@@ -61,6 +61,11 @@ def opgaver_client(momentum_manager):
     return momentum_manager.opgaver
 
 @pytest.fixture(scope="session")
+def vitas_client(momentum_manager):
+    """Returns the VitasClient for VITAS-related operations."""
+    return momentum_manager.vitas
+
+@pytest.fixture(scope="session")
 def test_cpr():
     """Returns the test CPR from environment variables."""
     test_cpr = os.getenv("TEST_CPR")
