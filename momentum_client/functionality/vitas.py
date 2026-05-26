@@ -6,11 +6,12 @@ class VitasClient:
     def __init__(self, client: MomentumClient):
         self._client = client
 
-    def hent_vitas(self, søgeterm: str = "*") -> Optional[List[dict]]:
+    def hent_vitas(self, søgeterm: str = "*", filters: List[dict] = None) -> Optional[List[dict]]:
         """
-        Hent VITAS-poster med angivet søgeterm.
+        Hent VITAS-poster med angivet søgeterm og filtre.
 
         :param søgeterm: Søgeterm til filtrering. Standard er * ("alle")
+        :param filters: Liste af filtre der skal anvendes. Standard er ingen filtre.
         :return: Liste af VITAS-poster eller None hvis ikke fundet
         """
         endpoint = "/vitas/searchvitas"
@@ -27,7 +28,7 @@ class VitasClient:
                 "paging": {"pageNumber": page_number, "pageSize": 1000},
                 "columns": [],
                 "searchFields": ["type"],
-                "filters": [],
+                "filters": filters or [],
                 "term": term,
                 "impersonateCaseworkerId": None
             }

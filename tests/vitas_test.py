@@ -1,5 +1,6 @@
 # Fixtures are automatically loaded from conftest.py
 
+import datetime
 from momentum_client.manager import MomentumClientManager
 
 def test_hent_vitas_intet_søgeterm(momentum_manager: MomentumClientManager):
@@ -8,6 +9,17 @@ def test_hent_vitas_intet_søgeterm(momentum_manager: MomentumClientManager):
 
 def test_hent_vitas_søgeterm(momentum_manager: MomentumClientManager):
     response = momentum_manager.vitas.hent_vitas("personlig")
+    assert response is not None
+
+def test_hent_vitas_med_filtre(momentum_manager: MomentumClientManager):
+    tomorrow = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%dT22:00:00.000Z")
+    filters = [
+        {
+            "fieldName": "end",
+            "values": [tomorrow, None, "false"]
+        }
+    ]
+    response = momentum_manager.vitas.hent_vitas(filters=filters, søgeterm="personlig")
     assert response is not None
 
 def test_hent_vita(momentum_manager: MomentumClientManager):
