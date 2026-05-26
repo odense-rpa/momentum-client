@@ -30,6 +30,20 @@ class BorgereClient:
         
         return response.json()
     
+    def hent_borger_med_id(self, borger_id: str) -> Optional[dict]:
+        """
+        Fetch a citizen's data by their ID.
+
+        :param borger_id: Citizen's ID
+        :return: Citizen data as a dictionary or None if not found
+        """
+        endpoint = f"citizens/{borger_id}"
+        response = self._client.get(endpoint)
+        if response.status_code == 404:
+            return None
+        
+        return response.json()
+    
     def hent_borgere(self, filters: List[dict], søgeterm = "*") -> Optional[dict]:
         """
         Hent borgere med angivne filtre og søgeterm.
