@@ -9,6 +9,11 @@ def test_hent_borger(momentum_manager: MomentumClientManager, test_cpr):
     response = momentum_manager.borgere.hent_borger(test_cpr)
     assert response is not None    
 
+def test_hent_borger_ikke_fundet(momentum_manager: MomentumClientManager):
+    # Test with a CPR number that does not exist
+    response = momentum_manager.borgere.hent_borger("0000000000")
+    assert response is None
+
 def test_hent_borgere(momentum_manager: MomentumClientManager):
     filters = [
         {

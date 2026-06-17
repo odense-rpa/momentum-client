@@ -17,17 +17,23 @@ class BorgereClient:
         :return: Citizen data as a dictionary or None if not found
         """
         endpoint = f"citizens/find?cpr={cpr}"
-        response = self._client.get(endpoint)
-        if response.status_code == 404:
-            return None
+        try:
+            response = self._client.get(endpoint)
+        except HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return None
+            raise
         
         borger = response.json()
 
         endpoint = f"citizens/{borger["citizenId"]}"
-        response = self._client.get(endpoint)
-        if response.status_code == 404:
-            return None
-        
+        try:
+            response = self._client.get(endpoint)
+        except HTTPStatusError as e:
+            if e.response.status_code == 404:
+                return None
+            raise
+
         return response.json()
     
     def hent_borger_med_id(self, borger_id: str) -> Optional[dict]:
