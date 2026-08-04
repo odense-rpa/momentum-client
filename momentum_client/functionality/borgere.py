@@ -9,6 +9,56 @@ class BorgereClient:
     def __init__(self, client: MomentumClient):
         self._client = client
 
+    def _oversæt_hændelsestype_til_kode(self, borger: dict, hændelsestype: str) -> Optional[str]:
+        # Fetch målgrupper for the citizen.
+        målgrupper = self.hent_målgrupper(borger)
+        if målgrupper is None:
+            raise ValueError("Ingen målgrupper fundet for borgeren.")
+
+        målgruppe_liste = self._to_list(målgrupper)
+        aktive_målgrupper = [
+            målgruppe
+            for målgruppe in målgruppe_liste
+            if isinstance(målgruppe, dict) and målgruppe.get("end") is None
+        ]
+        if not aktive_målgrupper:
+            raise ValueError("Ingen aktiv målgruppe fundet for borgeren.")
+
+        aktiv_målgruppe = aktive_målgrupper[0]
+        målgruppe_kode = self._first_present(aktiv_målgruppe, ["targetGroupCode"])
+        if målgruppe_kode == "6.6":
+            taxonomi_svar = self._client.get("/taxonomies/SANCTION_CAUSE_EVENT_TYPES").json()
+        else:
+            taxonomi_svar = self._client.get("/taxonomies/SANCTION_CAUSE_EVENT_TYPES").json()        
+        
+        taksonomi_værdier = self._to_list(
+            taxonomi_svar.get("taxons", taxonomi_svar) if isinstance(taxonomi_svar, dict) else taxonomi_svar
+        )
+
+        taksonomi_kode = None
+        for værdi in taksonomi_værdier:
+            if not isinstance(værdi, dict):
+                continue
+            if værdi.get("name") == hændelsestype:
+                taksonomi_kode = værdi.get("code")
+                if taksonomi_kode:
+                    break
+
+        # Fetch allowed values "/rules/" & [Borger.id].
+        regler = self._client.get(f"/rules/{borger['id']}").json()
+        tilladte_koder = []
+        if isinstance(regler, dict):
+            availability = regler.get("availability")
+            if isinstance(availability, dict):
+                tilladte_koder = self._to_list(availability.get("allowedSanctionCauseEventTypeCodes"))
+
+        # Loop [Regler.availability.allowedSanctionCauseEventTypeCodes] and check against the taxonomy code.
+        if taksonomi_kode and (not tilladte_koder or taksonomi_kode in tilladte_koder):
+            return taksonomi_kode
+
+        return None
+    
+
     def hent_borger(self, cpr: str) -> Optional[dict]:
         """
         Fetch a citizen's data by their CPR number.
@@ -907,20 +957,20 @@ class BorgereClient:
         aktive_målgrupper = [
             målgruppe
             for målgruppe in målgruppe_liste
-            if isinstance(målgruppe, dict) and målgruppe.get("end") == "01-01-0001"
+            if isinstance(målgruppe, dict) and målgruppe.get("end") is None
         ]
         if not aktive_målgrupper:
             raise ValueError("Ingen aktiv målgruppe fundet for borgeren.")
         
-        brevskabelon = self._hent_brevskabelon(brevskabelonkode, aktive_målgrupper[0])
-        hændelsestype_kode = self._oversæt_hændelsestype_til_kode(borger, hændelsestype) # TODO Refer this from taksonomier.py
+        brevskabelon = self.hent_brevskabelon(brevskabelonkode, aktive_målgrupper[0])
+        hændelsestype_kode = self._oversæt_hændelsestype_til_kode(borger, hændelsestype)
         adresse_id = self._extract_address_id(borger)
 
         hændelsestitel = titel if hændelsestype == "Andet" else hændelsestype
         regular_negative_events = [
             {
-                "activityId": aktivitet["activityId"],
-                "citizenId": borger["citizenId"],
+                "activityId": aktivitet["relatedEntityId"],
+                "citizenId": borger["id"],
                 "description": begrundelse_for_partshøring,
                 "eventTypeCode": hændelsestype_kode,
                 "startDate": self._format_momentum_datetime(hændelsesdato, hour=21),
@@ -936,21 +986,17 @@ class BorgereClient:
                 },
                 "messageRecipientType": 0,
                 "processEmptyMergeFields": True,
-                "recipientId": borger["citizenId"],
-                "tags": self._to_list(brevskabelon.get("tags")),
-                "templateCode": self._first_present(brevskabelon, ["templateCode", "code"], brevskabelonkode),
-                "templateDisplayName": self._first_present(
-                    brevskabelon,
-                    ["templateDisplayName", "displayName", "title"],
-                    "",
-                ),
-                "templateId": self._first_present(brevskabelon, ["templateId", "id"], ""),
-                "templateType": self._first_present(brevskabelon, ["templateType", "type"], ""),
-                "title": self._first_present(brevskabelon, ["title", "displayName"], hændelsestitel),
+                "recipientId": borger["id"],
+                "tags": brevskabelon["tags"],
+                "templateCode": brevskabelon["code"],
+                "templateDisplayName": brevskabelon["name"],                    
+                "templateId": brevskabelon["id"],
+                "templateType": brevskabelon["type"],
+                "title": brevskabelon["name"]
             },
             "consultationHearing": {
-                "activityId": aktivitet["activityId"],
-                "citizenId": borger["citizenId"],
+                "activityId": aktivitet["relatedEntityId"],
+                "citizenId": borger["id"],
                 "deadline": self._format_momentum_datetime(partshøringsfrist, hour=22),
                 "eventTypeCode": hændelsestype_kode,
                 "reason": begrundelse_for_partshøring,
@@ -958,7 +1004,7 @@ class BorgereClient:
                 "relatedNegativeEvents": [],
                 "responsibleCaseworkerId": ansvarlig_sagsbehandler["caseworkerId"],
                 "title": hændelsestitel,
-            },
+            }
         }
 
         endpoint = f"/rpa/consultation-hearing/{borger['id']}/with-letter/{ansvarlig_sagsbehandler['caseworkerId']}"

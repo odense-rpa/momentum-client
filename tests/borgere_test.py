@@ -241,4 +241,41 @@ def test_hent_brevskabelon(momentum_manager: MomentumClientManager, test_cpr):
     assert response is not None
     assert response.get("code") == brevskabelonkode
 
-# TODO: Test send_partshøring
+
+def test_send_partshøring(momentum_manager: MomentumClientManager, test_cpr):
+    # TODO - Ser dysfunktionel ud i edu - bør verificeres i prod. BP Fejler også, med production funktionel kode    
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    sager = momentum_manager.borgere.hent_sager(borger)
+    assert sager is not None
+    sag = sager[0]
+
+    ansvarlig_sagsbehandlere = momentum_manager.borgere.hent_ansvarlige_sagsbehandlere(borger)
+    assert ansvarlig_sagsbehandlere is not None
+    ansvarlig_sagsbehandler = ansvarlig_sagsbehandlere[0]
+
+    aktiviteter = momentum_manager.borgere.hent_relaterede_aktiviteter(borger)
+    assert aktiviteter is not None
+    aktivitet = aktiviteter[0]
+
+    hændelsesdatoer = [datetime.datetime.now() - datetime.timedelta(days=1)]
+    partshøringsfrist = datetime.datetime.now() + datetime.timedelta(days=7)
+    begrundelse_for_partshøring = "Test begrundelse for partshøring"
+    hændelsestype = "Udebliver fra samtale eller aktivitet"
+    titel = "Test Partshøring"
+    brevskabelonkode = "5.44"
+
+    response = momentum_manager.borgere.send_partshøring(
+        borger=borger,
+        sag=sag,
+        aktivitet=aktivitet,
+        ansvarlig_sagsbehandler=ansvarlig_sagsbehandler,
+        hændelsesdatoer=hændelsesdatoer,
+        partshøringsfrist=partshøringsfrist,
+        begrundelse_for_partshøring=begrundelse_for_partshøring,
+        hændelsestype=hændelsestype,
+        titel=titel,
+        brevskabelonkode=brevskabelonkode
+    )
+    assert response is not None
