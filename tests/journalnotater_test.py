@@ -9,3 +9,5 @@ def test_hent_journalnotater(momentum_manager: MomentumClientManager, test_virks
     response = momentum_manager.journalnotater.hent_journalnotater(reference_id)
     assert response is not None
     assert isinstance(response, (dict, list))
+
+# TODO: Opret journalnotat 

@@ -1,6 +1,7 @@
 # Fixtures are automatically loaded from conftest.py
 
 import datetime
+import os
 from momentum_client.manager import MomentumClientManager
 
 
@@ -193,5 +194,51 @@ def test_hent_uddannelser(momentum_manager: MomentumClientManager, test_cpr):
 
 def test_hent_målgrupper(momentum_manager: MomentumClientManager, test_cpr):
     borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
     målgrupper = momentum_manager.borgere.hent_målgrupper(borger)
     assert målgrupper is not None
+
+
+def test_hent_relaterede_aktiviteter(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    response = momentum_manager.borgere.hent_relaterede_aktiviteter(borger)
+
+    assert response is not None
+
+
+def test_hent_sager(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    response = momentum_manager.borgere.hent_sager(borger)
+
+    assert response is not None
+
+
+def test_hent_brevskabelon(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    målgrupper = momentum_manager.borgere.hent_målgrupper(borger)
+    assert målgrupper is not None
+
+    målgruppe_liste = momentum_manager.borgere._to_list(målgrupper)
+    aktive_målgrupper = [
+        målgruppe
+        for målgruppe in målgruppe_liste
+        if isinstance(målgruppe, dict) and målgruppe.get("end") is None
+    ]
+    assert aktive_målgrupper
+
+    aktiv_målgruppe = aktive_målgrupper[0]
+    brevskabelonkode = "5.44"
+
+    response = momentum_manager.borgere.hent_brevskabelon(brevskabelonkode, aktiv_målgruppe)
+
+    assert response is not None
+    assert response.get("code") == brevskabelonkode
+
+# TODO: Test send_partshøring

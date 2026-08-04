@@ -782,3 +782,195 @@ class BorgereClient:
         if response.status_code == 404:
             return None
         return response.json()
+
+    def hent_relaterede_aktiviteter(self, borger: dict) -> Optional[dict]:
+        """
+        Hent en borgers relaterede aktiviteter.
+
+        :param borger: Borgerens data som en Dict
+        :return: Relaterede aktiviteter som en Dict eller None hvis fejlet
+        """
+        endpoint = f"/citizens/{borger['id']}/consultationHearing/relatedActivities"
+        response = self._client.get(endpoint)
+        if response.status_code == 404:
+            return None
+        return response.json()
+
+    def hent_sager(self, borger: dict, aktive: bool = True) -> Optional[dict]:
+        """
+        Hent en borgers sager.
+
+        :param borger: Borgerens data som en Dict
+        :return: Sager som en Dict eller None hvis fejlet
+        """
+        endpoint = f"/cases/citizens/{borger['id']}/case-periods?activeOnly={str(aktive).lower()}"
+        response = self._client.get(endpoint)
+        if response.status_code == 404:
+            return None
+        return response.json()
+
+    @staticmethod
+    def _to_list(value) -> list:
+        if value is None:
+            return []
+        if isinstance(value, list):
+            return value
+        return [value]
+
+    @staticmethod
+    def _first_present(source: dict, keys: list[str], default=None):
+        for key in keys:
+            if key in source and source[key] is not None:
+                return source[key]
+        return default
+
+    @staticmethod
+    def _format_momentum_datetime(value: datetime.datetime, hour: int) -> str:
+        return value.strftime(f"%Y-%m-%dT{hour:02d}:00:00.000Z")
+
+    def _extract_address_id(self, borger: dict) -> str:
+        contact_information = self._first_present(
+            borger,
+            ["contactInformation", "contactinfo", "contact"],
+            {},
+        )
+        if not isinstance(contact_information, dict):
+            raise ValueError("Borger mangler contactInformation til afsendelse af partshøring.")
+
+        temporary_address = self._first_present(
+            contact_information,
+            ["temporaryAddress", "tempAddress"],
+        )
+        primary_address = self._first_present(
+            contact_information,
+            ["primaryAddress", "address"],
+        )
+
+        selected_address = temporary_address or primary_address
+        if not isinstance(selected_address, dict):
+            raise ValueError("Borger mangler gyldig adresse til afsendelse af partshøring.")
+
+        address_id = self._first_present(selected_address, ["id", "addressId"])
+        if not address_id:
+            raise ValueError("Borgerens adresse mangler id til afsendelse af partshøring.")
+
+        return address_id
+
+    def hent_brevskabelon(self, brevskabelonkode: str, aktiv_målgruppe: dict) -> dict:
+        målgruppe_kode = self._first_present(
+            aktiv_målgruppe,
+            ["targetGroupCode"],
+        )
+        if not målgruppe_kode:
+            raise ValueError("Aktiv målgruppe mangler targetGroupCode til afsendelse af partshøring.")
+
+        endpoint = (
+            f"/messages/lettertemplates?codes={målgruppe_kode}"
+            "&tags=ConsultationHearingWithOffer"
+            "&excludedTags=DynamicDocument"
+            "&excludedTags=Jobmatch"
+            "&excludedTags=AttachPDFWithJobs"
+        )
+        templates = self._client.get(endpoint).json()        
+
+        filtrerede_templates = [
+            template
+            for template in templates
+            if isinstance(template, dict)
+            and template["code"] == brevskabelonkode
+        ]
+
+        if målgruppe_kode:
+            templates_med_målgruppe = [
+                template
+                for template in filtrerede_templates
+                if any(tg.startswith(målgruppe_kode) for tg in template.get("targetGroups", []))
+            ]
+            if templates_med_målgruppe:
+                filtrerede_templates = templates_med_målgruppe
+
+        if not filtrerede_templates:
+            raise ValueError(f"Ingen brevskabelon fundet for kode: {brevskabelonkode}.")
+
+        return filtrerede_templates[0]
+
+
+    def send_partshøring(self, borger: dict, sag: dict, aktivitet: dict, ansvarlig_sagsbehandler: dict, hændelsesdatoer: list[datetime.datetime], partshøringsfrist: datetime.datetime, begrundelse_for_partshøring: str, hændelsestype: str, titel: str, brevskabelonkode: str) -> Optional[dict]:
+        if not hændelsesdatoer:
+            raise ValueError("Der skal angives mindst én hændelsesdato.")
+
+        målgrupper = self.hent_målgrupper(borger)
+        if målgrupper is None:
+            raise ValueError("Ingen målgrupper fundet for borgeren.")
+
+        målgruppe_liste = self._to_list(målgrupper)
+        aktive_målgrupper = [
+            målgruppe
+            for målgruppe in målgruppe_liste
+            if isinstance(målgruppe, dict) and målgruppe.get("end") == "01-01-0001"
+        ]
+        if not aktive_målgrupper:
+            raise ValueError("Ingen aktiv målgruppe fundet for borgeren.")
+        
+        brevskabelon = self._hent_brevskabelon(brevskabelonkode, aktive_målgrupper[0])
+        hændelsestype_kode = self._oversæt_hændelsestype_til_kode(borger, hændelsestype) # TODO Refer this from taksonomier.py
+        adresse_id = self._extract_address_id(borger)
+
+        hændelsestitel = titel if hændelsestype == "Andet" else hændelsestype
+        regular_negative_events = [
+            {
+                "activityId": aktivitet["activityId"],
+                "citizenId": borger["citizenId"],
+                "description": begrundelse_for_partshøring,
+                "eventTypeCode": hændelsestype_kode,
+                "startDate": self._format_momentum_datetime(hændelsesdato, hour=21),
+                "title": hændelsestitel,
+            }
+            for hændelsesdato in hændelsesdatoer
+        ]
+
+        payload = {
+            "letterMessage": {
+                "context": {
+                    "caseId": sag["id"],
+                },
+                "messageRecipientType": 0,
+                "processEmptyMergeFields": True,
+                "recipientId": borger["citizenId"],
+                "tags": self._to_list(brevskabelon.get("tags")),
+                "templateCode": self._first_present(brevskabelon, ["templateCode", "code"], brevskabelonkode),
+                "templateDisplayName": self._first_present(
+                    brevskabelon,
+                    ["templateDisplayName", "displayName", "title"],
+                    "",
+                ),
+                "templateId": self._first_present(brevskabelon, ["templateId", "id"], ""),
+                "templateType": self._first_present(brevskabelon, ["templateType", "type"], ""),
+                "title": self._first_present(brevskabelon, ["title", "displayName"], hændelsestitel),
+            },
+            "consultationHearing": {
+                "activityId": aktivitet["activityId"],
+                "citizenId": borger["citizenId"],
+                "deadline": self._format_momentum_datetime(partshøringsfrist, hour=22),
+                "eventTypeCode": hændelsestype_kode,
+                "reason": begrundelse_for_partshøring,
+                "regularNegativeEvents": regular_negative_events,
+                "relatedNegativeEvents": [],
+                "responsibleCaseworkerId": ansvarlig_sagsbehandler["caseworkerId"],
+                "title": hændelsestitel,
+            },
+        }
+
+        endpoint = f"/rpa/consultation-hearing/{borger['id']}/with-letter/{ansvarlig_sagsbehandler['caseworkerId']}"
+        create_response = self._client.post(endpoint, json=payload).json()
+
+        letter_id = self._first_present(create_response, ["letterId", "messageId"])
+        if letter_id:
+            send_endpoint = f"/messages/{letter_id}/send/{adresse_id}"
+            send_response = self._client.post(send_endpoint).json()
+            return {
+                "consultationHearing": create_response,
+                "messageSend": send_response,
+            }
+
+        return create_response
