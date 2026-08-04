@@ -43,6 +43,8 @@ class JournalnotaterClient:
                 f"Ugyldig journaltype: {journaltype}. Gyldige journaltyper er: {', '.join(journaltyper.values())}"
             )
 
+        # journaltype_id = "022.405.000" Testing purposes
+
         skabelon = {
             "createdAt": "1970-01-01T00:00:00.000Z",
             "updatedAt": "1970-01-01T00:00:00.000Z",
