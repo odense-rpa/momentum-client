@@ -279,3 +279,30 @@ def test_send_partshøring(momentum_manager: MomentumClientManager, test_cpr):
         brevskabelonkode=brevskabelonkode
     )
     assert response is not None
+
+
+def test_hent_supplerendesager(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    response = momentum_manager.borgere.hent_supplerendesager(borger)
+    assert response is not None
+
+
+def test_opret_målgruppe(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    sagsbehandler = momentum_manager.borgere.hent_sagsbehandler("andja")
+    assert sagsbehandler is not None
+
+    målgruppe_kode = "IY - Ingen ydelse"
+    start_dato = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime("%Y-%m-%dT00:00:00Z"))
+
+    response = momentum_manager.borgere.opret_målgruppe(
+        borger=borger,
+        målgruppe_kode=målgruppe_kode,
+        start_dato=start_dato,
+        sagsbehandler=sagsbehandler
+    )
+    assert response is not None

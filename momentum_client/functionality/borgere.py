@@ -858,7 +858,14 @@ class BorgereClient:
         if response.status_code == 404:
             return None
         return response.json()
-
+    
+    def hent_supplerendesager(self, borger: dict) -> Optional[dict]:
+        endpoint = f"/citizens/{borger['id']}/supplemental-cases"
+        response = self._client.get(endpoint)
+        if response.status_code == 404:
+            return None
+        return response.json()
+        
     @staticmethod
     def _to_list(value) -> list:
         if value is None:
@@ -1020,3 +1027,71 @@ class BorgereClient:
             }
 
         return create_response
+    
+    def opret_målgruppe(
+        self,
+        borger: dict,
+        målgruppe_kode: str,
+        start_dato: str,
+        sagsbehandler: dict,
+        slut_dato: Optional[str] = None,
+        person_kategori_kode: Optional[str] = None,
+        ansvarlige_aktører: Optional[List[dict]] = None,
+        ansvarlige_private_kontakter: Optional[List[dict]] = None,
+        tilmelding: Optional[dict] = None,
+        asylprofil: Optional[dict] = None,
+    ) -> Optional[dict]:
+        """
+        Opret en målgruppe (classification) for en borger.
+
+        :param borger: Borgerens data som en Dict
+        :param målgruppe_kode: Målgruppens kode (targetGroupCode)
+        :param start_dato: Startdato for målgruppen som streng, fx "2026-08-13T00:00:00Z"
+        :param sagsbehandler: Ansvarlig sagsbehandler som en Dict. Momentum kræver en ansvarlig
+            sagsbehandler ved oprettelse af målgruppe, selvom det ikke fremgår af dokumentationen.
+        :param slut_dato: Valgfri slutdato for målgruppen som streng, fx "2026-08-13T00:00:00Z"
+        :param person_kategori_kode: Valgfri personCategoryCode
+        :param ansvarlige_aktører: Valgfri liste af ansvarlige aktører (responsibleActors). Overskriver
+            standardaktøren bygget ud fra `sagsbehandler`, fx:
+            [{"actorId": "...", "role": 1, "responsibilities": [{"responsibilityCode": None, "showInJobnet": None}]}]
+        :param ansvarlige_private_kontakter: Valgfri liste af private kontaktpersoner (responsiblePrivateContacts), fx:
+            [{"actorId": "...", "responsibilityCodes": ["..."]}]
+        :param tilmelding: Valgfri enrollment-data som en Dict. Hvis ikke angivet benyttes standardværdier.
+        :param asylprofil: Valgfri asylumProfile-data som en Dict. Hvis ikke angivet benyttes standardværdier.
+        :return: Oprettet målgruppe som en Dict eller None hvis fejlet
+        """
+        standard_ansvarlig_aktør = [
+            {
+                "actorId": sagsbehandler["id"],
+                "role": 1,
+                "responsibilities": []
+            }
+        ]
+
+        body = {
+            "targetGroupCode": målgruppe_kode,
+            "personCategoryCode": person_kategori_kode,
+            "start": start_dato,
+            "end": slut_dato,
+            "enrollment": tilmelding if tilmelding is not None else {
+                "id": None,
+                "professions": [],
+                "externalIds": [],
+                "start": None,
+                "end": None,
+                "clientCategoryCode": "",
+                "unemploymentStatusCode": "",
+                "endReasonCode": None
+            },
+            "asylumProfile": asylprofil if asylprofil is not None else {
+                "asylumTransitionDate": None,
+                "municipalityId": None,
+                "comment": None
+            },
+            "responsibleActors": ansvarlige_aktører if ansvarlige_aktører is not None else standard_ansvarlig_aktør,
+            "responsiblePrivateContacts": ansvarlige_private_kontakter if ansvarlige_private_kontakter is not None else []
+        }
+
+        endpoint = f"/classifications/{borger['id']}"
+        response = self._client.post(endpoint, json=body)
+        return response.json() if response.status_code in (200, 201) else None
