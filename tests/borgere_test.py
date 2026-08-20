@@ -296,13 +296,40 @@ def test_opret_målgruppe(momentum_manager: MomentumClientManager, test_cpr):
     sagsbehandler = momentum_manager.borgere.hent_sagsbehandler("andja")
     assert sagsbehandler is not None
 
-    målgruppe_kode = "IY - Ingen ydelse"
-    start_dato = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime("%Y-%m-%dT00:00:00Z"))
+    målgruppe_kode = momentum_manager.taksonomier.find_taksonomi_kode("IY - Ingen ydelse")
+    assert målgruppe_kode == "NB"
 
-    response = momentum_manager.borgere.opret_målgruppe(
-        borger=borger,
-        målgruppe_kode=målgruppe_kode,
-        start_dato=start_dato,
-        sagsbehandler=sagsbehandler
-    )
+    start_dato = datetime.date.today() - datetime.timedelta(days=3)
+
+    # response = momentum_manager.borgere.opret_målgruppe(
+    #     borger=borger,
+    #     målgruppe_kode=målgruppe_kode,
+    #     start_dato=start_dato,
+    #     sagsbehandler=sagsbehandler
+    # )
+    response = None
     assert response is not None
+
+def test_luk_målgruppe(momentum_manager: MomentumClientManager, test_cpr):
+
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    målgrupper = momentum_manager.borgere.hent_målgrupper(borger)
+    assert målgrupper is not None
+
+    målgruppe = next(
+        (målgruppe for målgruppe in målgrupper if isinstance(målgruppe, dict) and målgruppe.get("end") is None),
+        None
+    )
+    assert målgruppe is not None
+
+    lukke_kode = momentum_manager.taksonomier.find_taksonomi_kode("Fejloprettet", "CLOSING_CAUSE_TYPE")
+    assert lukke_kode == "CLOSING_CAUSE_FEJLOPRETTET"
+
+    slut_dato = datetime.date.today() - datetime.timedelta(days=2)
+
+    #response = momentum_manager.borgere.luk_målgruppe(borger, målgruppe, lukke_kode, "Test på test", slut_dato)
+    response = None
+    assert response is not None
+    assert response["CLOSING_CAUSE_FEJLOPRETTET"] == lukke_kode

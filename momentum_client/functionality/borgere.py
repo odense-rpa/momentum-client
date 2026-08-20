@@ -885,6 +885,11 @@ class BorgereClient:
     def _format_momentum_datetime(value: datetime.datetime, hour: int) -> str:
         return value.strftime(f"%Y-%m-%dT{hour:02d}:00:00.000Z")
 
+    @staticmethod
+    def _format_dagen_før_kl_22(dato: datetime.date) -> str:
+        dagen_før = dato - datetime.timedelta(days=1)
+        return dagen_før.strftime("%Y-%m-%dT22:00:00.000Z")
+
     def _extract_address_id(self, borger: dict) -> str:
         contact_information = self._first_present(
             borger,
@@ -1032,66 +1037,68 @@ class BorgereClient:
         self,
         borger: dict,
         målgruppe_kode: str,
-        start_dato: str,
+        start_dato: datetime.date,
         sagsbehandler: dict,
-        slut_dato: Optional[str] = None,
-        person_kategori_kode: Optional[str] = None,
-        ansvarlige_aktører: Optional[List[dict]] = None,
-        ansvarlige_private_kontakter: Optional[List[dict]] = None,
-        tilmelding: Optional[dict] = None,
+        slut_dato: Optional[datetime.date] = None,
         asylprofil: Optional[dict] = None,
     ) -> Optional[dict]:
         """
         Opret en målgruppe (classification) for en borger.
 
         :param borger: Borgerens data som en Dict
-        :param målgruppe_kode: Målgruppens kode (targetGroupCode)
-        :param start_dato: Startdato for målgruppen som streng, fx "2026-08-13T00:00:00Z"
+        :param målgruppe_kode: Målgruppens kode (targetGroupCode), ikke navet på målgruppen. 
+        :param start_dato: Startdato for målgruppen. Sendes til Momentum som dagen før kl. 22:00.
         :param sagsbehandler: Ansvarlig sagsbehandler som en Dict. Momentum kræver en ansvarlig
             sagsbehandler ved oprettelse af målgruppe, selvom det ikke fremgår af dokumentationen.
-        :param slut_dato: Valgfri slutdato for målgruppen som streng, fx "2026-08-13T00:00:00Z"
+        :param slut_dato: Valgfri slutdato for målgruppen. Sendes til Momentum som dagen før kl. 22:00.
         :param person_kategori_kode: Valgfri personCategoryCode
-        :param ansvarlige_aktører: Valgfri liste af ansvarlige aktører (responsibleActors). Overskriver
-            standardaktøren bygget ud fra `sagsbehandler`, fx:
-            [{"actorId": "...", "role": 1, "responsibilities": [{"responsibilityCode": None, "showInJobnet": None}]}]
-        :param ansvarlige_private_kontakter: Valgfri liste af private kontaktpersoner (responsiblePrivateContacts), fx:
-            [{"actorId": "...", "responsibilityCodes": ["..."]}]
         :param tilmelding: Valgfri enrollment-data som en Dict. Hvis ikke angivet benyttes standardværdier.
         :param asylprofil: Valgfri asylumProfile-data som en Dict. Hvis ikke angivet benyttes standardværdier.
         :return: Oprettet målgruppe som en Dict eller None hvis fejlet
         """
-        standard_ansvarlig_aktør = [
-            {
-                "actorId": sagsbehandler["id"],
-                "role": 1,
-                "responsibilities": []
-            }
-        ]
 
         body = {
+            "start": self._format_dagen_før_kl_22(start_dato),
+            "end": self._format_dagen_før_kl_22(slut_dato) if slut_dato is not None else None,
             "targetGroupCode": målgruppe_kode,
-            "personCategoryCode": person_kategori_kode,
-            "start": start_dato,
-            "end": slut_dato,
-            "enrollment": tilmelding if tilmelding is not None else {
-                "id": None,
-                "professions": [],
-                "externalIds": [],
-                "start": None,
-                "end": None,
-                "clientCategoryCode": "",
-                "unemploymentStatusCode": "",
-                "endReasonCode": None
+            "context":{
+                "process_type": "1"
             },
             "asylumProfile": asylprofil if asylprofil is not None else {
                 "asylumTransitionDate": None,
-                "municipalityId": None,
-                "comment": None
             },
-            "responsibleActors": ansvarlige_aktører if ansvarlige_aktører is not None else standard_ansvarlig_aktør,
-            "responsiblePrivateContacts": ansvarlige_private_kontakter if ansvarlige_private_kontakter is not None else []
+            "responsibleActors": [
+                {
+                    "actorId": sagsbehandler["id"],
+                    "role": 1,
+                    "responsibilities": []
+                }
+            ],
+            "responsiblePrivateContacts": [],
         }
 
         endpoint = f"/classifications/{borger['id']}"
         response = self._client.post(endpoint, json=body)
+        return response.json() if response.status_code in (200, 201) else None
+
+    def luk_målgruppe(self, borger: dict, målgruppe: dict, lukke_kode: str, begrundelse: str, slut_dato: datetime.date) -> Optional[dict]:
+        """
+        Luk en borgers målgruppe, også kaldet en visitation.
+
+        :param borger: Borgeren målgruppen tilhører
+        :param målgruppe: Målgruppen der skal lukkes
+        :param lukke_kode: Taksonomikode for lukkeårsag
+        :param begrundelse: Begrundelse for lukningen
+        :param slut_dato: Slutdato for målgruppen
+        :return: Den lukkede målgruppe som en Dict eller None hvis lukning fejlede
+        """
+
+        body = {
+            "closingReasonCode": lukke_kode,
+            "closingDate": self._format_dagen_før_kl_22(slut_dato),
+            "comment": begrundelse
+        }
+
+        endpoint = f"/citizens/{borger['id']}/classifications/{målgruppe['id']}/close"
+        response = self._client.put(endpoint, json=body)
         return response.json() if response.status_code in (200, 201) else None
