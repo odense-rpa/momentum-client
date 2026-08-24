@@ -865,7 +865,69 @@ class BorgereClient:
         if response.status_code == 404:
             return None
         return response.json()
-        
+
+    def hent_supplerendesagstyper(self) -> list[dict]:
+        endpoint = "/supplemental-case-types?activeOnly=true"
+        respone = self._client.get(endpoint)
+
+        return respone.json()
+
+    def opret_supplerendesag(
+        self,
+        borger: dict,
+        supplerende_sag_navn: str,
+        start_dato: datetime.date,
+        sagsbehandler: dict,
+        private_kontaktpersoner: Optional[List[dict]] = None,
+    ) -> Optional[dict]:
+        """
+        Opret en supplerende sag for en borger.
+
+        :param borger: Borgerens data som en Dict
+        :param supplerende_sag_type_id: ID for typen af supplerende sag (supplementalCaseTypeId)
+        :param start_dato: Startdato for den supplerende sag. Sendes til Momentum som dagen før kl. 22:00.
+        :param sagsbehandler: Ansvarlig sagsbehandler som en Dict
+        :param ansvarsomraade_kode: Valgfri responsibilityCode for den ansvarlige sagsbehandler
+        :param vis_i_jobnet: Valgfrit flag for om ansvarsområdet skal vises i Jobnet
+        :param private_kontaktpersoner: Valgfri liste af Dicts med "actorId" og "responsibilityCodes"
+        :return: Oprettet supplerende sag som en Dict eller None hvis fejlet
+        """
+
+        sagstyper = self.hent_supplerendesagstyper()
+
+        supplerende_sag_type = next((sagstype for sagstype in sagstyper if sagstype["name"] == supplerende_sag_navn), None)
+
+        if supplerende_sag_type is None:
+            raise ValueError("Supplerendesagstype ikke fundet")
+
+        body = {
+            "supplementalCaseTypeId": supplerende_sag_type["id"],
+            "startDate": self._format_dagen_før_kl_22(start_dato),
+            "responsibleCaseworkers": [
+                {
+                    "actorId": sagsbehandler["id"],
+                    "role": 1,
+                    "responsibilities": []
+                }
+            ],
+            "privateContactPersons": private_kontaktpersoner if private_kontaktpersoner is not None else [],
+        }
+
+        endpoint = f"/citizens/{borger['id']}/supplemental-cases"
+        response = self._client.post(endpoint, json=body)
+        return response.json() if response.status_code in (200, 201) else None
+
+    def luk_supplerende_sag(self, borger: dict, supplerende_sag: dict, kommentar: str, slutdato: datetime.date) -> dict:
+
+        body = {
+            "endDate": self._format_dagen_før_kl_22(slutdato),
+            "comment": kommentar,
+        }
+
+        endpoint = f"/citizens/{borger['id']}/supplemental-cases/{supplerende_sag['id']}/close"
+        response = self._client.put(endpoint, json=body)
+        return response.json()
+    
     @staticmethod
     def _to_list(value) -> list:
         if value is None:

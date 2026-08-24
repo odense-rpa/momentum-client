@@ -289,6 +289,41 @@ def test_hent_supplerendesager(momentum_manager: MomentumClientManager, test_cpr
     assert response is not None
 
 
+def test_hent_supplerendesagstyper(momentum_manager: MomentumClientManager):
+    response = momentum_manager.borgere.hent_supplerendesagstyper()
+
+    assert isinstance(response, list)
+    assert all(isinstance(sagstype, dict) for sagstype in response)
+
+def test_opret_supplerendesag(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    sagstype_navn = "Dedikeret vejledningssamtale om repatriering - diversesag"
+
+    sagsbehandler = momentum_manager.borgere.hent_sagsbehandler("andja")
+    assert sagsbehandler is not None
+
+    # response = momentum_manager.borgere.opret_supplerendesag(borger, sagstype_navn, datetime.date.today() ,sagsbehandler)
+    response = None
+    assert response is not None
+    assert response["name"] == sagstype_navn
+
+def test_luk_supplerende_sag(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    supplerende_sager = momentum_manager.borgere.hent_supplerendesager(borger)
+    assert supplerende_sager is not None
+
+    supplerende_sag = next((sag for sag in supplerende_sager if sag["endDate"] is None), None)
+    assert supplerende_sag is not None
+
+    # response = momentum_manager.borgere.luk_supplerende_sag(borger, supplerende_sag, "Test luk", datetime.date.today())
+    response = None
+    assert response is not None
+
+
 def test_opret_målgruppe(momentum_manager: MomentumClientManager, test_cpr):
     borger = momentum_manager.borgere.hent_borger(test_cpr)
     assert borger is not None
