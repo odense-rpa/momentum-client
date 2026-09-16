@@ -368,3 +368,10 @@ def test_luk_målgruppe(momentum_manager: MomentumClientManager, test_cpr):
     response = None
     assert response is not None
     assert response["CLOSING_CAUSE_FEJLOPRETTET"] == lukke_kode
+
+def test_hent_placeringer(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    placeringer = momentum_manager.borgere.hent_placeringer(borger)
+    assert placeringer is not None

@@ -1164,3 +1164,14 @@ class BorgereClient:
         endpoint = f"/citizens/{borger['id']}/classifications/{målgruppe['id']}/close"
         response = self._client.put(endpoint, json=body)
         return response.json() if response.status_code in (200, 201) else None
+
+    def hent_placeringer(self, borger: dict) -> Optional[list]:
+        """
+        Hent en borgers placeringer.
+
+        :param borger: Borgeren hvis placeringer skal hentes
+        :return: En liste over placeringer eller None hvis hentning fejlede
+        """
+        endpoint = f"/placements/{borger['id']}"
+        response = self._client.get(endpoint)
+        return response.json() if response.status_code == 200 else None
