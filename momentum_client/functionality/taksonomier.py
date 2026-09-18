@@ -1,17 +1,37 @@
+import warnings
 from typing import List, Optional
 from momentum_client.client import MomentumClient
 
 class TaksonomierClient:
     def __init__(self, client: MomentumClient):
         self._client = client
-    
+
     def hent_alle_taksonomier(self) -> dict:
         """
         Hent alle taksonomigrupper.
 
+        Deprecated: use hent_medarbejder_taksonomier or find_taksonomi_* helpers instead.
+
         :return: Alle taksonomigrupper som en Dict
         """
-        endpoint = f"/taxonomies"
+        warnings.warn(
+            "TaksonomierClient.hent_alle_taksonomier() is deprecated and will be removed in a future version.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        endpoint = f"/taxonomies/search"
+
+        response = self._client.get(endpoint)
+
+        return response.json()
+
+    def hent_medarbejder_taksonomier(self) -> dict:
+        """
+        Hent alle taksonomigrupper for medarbejdere.
+
+        :return: Alle medarbejder-taksonomigrupper som en Dict
+        """
+        endpoint = "/taxonomies/lookup-tree?taxonomyCode=CASEWORKER_RESPONSIBILITY"
 
         response = self._client.get(endpoint)
 

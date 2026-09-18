@@ -23,3 +23,19 @@ def test_hent_taxanomi_gruppe(momentum_manager: MomentumClientManager):
     response = momentum_manager.taksonomier.find_taksonomi_gruppe(test_tax_kode)
     assert response is not None
     assert response["name"] == "Cause Types" and response["code"] == test_tax_kode
+
+def test_hent_medarbejder_taksonomier(momentum_manager: MomentumClientManager):
+    response = momentum_manager.taksonomier.hent_medarbejder_taksonomier()
+
+    # Find where name is "Porteføljeansvarlig" in nested items
+    portefoljeansvarlig = []
+    for item in response.get("items", []):
+        if item.get("name") == "Porteføljeansvarlig":
+            portefoljeansvarlig.append({
+                "taxonomy_group": response["name"],
+                "taxonomy_code": response["code"],
+                "item": item
+            })
+    assert response is not None
+    assert len(response) > 0
+    assert len(portefoljeansvarlig) == 1
