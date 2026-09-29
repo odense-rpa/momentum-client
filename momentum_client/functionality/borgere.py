@@ -1063,10 +1063,10 @@ class BorgereClient:
                 "recipientId": borger["id"],
                 "tags": brevskabelon["tags"],
                 "templateCode": brevskabelon["code"],
-                "templateDisplayName": brevskabelon["name"],                    
+                "templateDisplayName": brevskabelon["displayName"],                    
                 "templateId": brevskabelon["id"],
                 "templateType": brevskabelon["type"],
-                "title": brevskabelon["name"]
+                "title": brevskabelon["displayName"]
             },
             "consultationHearing": {
                 "activityId": aktivitet["relatedEntityId"],
@@ -1076,18 +1076,18 @@ class BorgereClient:
                 "reason": begrundelse_for_partshøring,
                 "regularNegativeEvents": regular_negative_events,
                 "relatedNegativeEvents": [],
-                "responsibleCaseworkerId": ansvarlig_sagsbehandler["caseworkerId"],
+                "responsibleCaseworkerId": ansvarlig_sagsbehandler["id"],
                 "title": hændelsestitel,
             }
         }
 
-        endpoint = f"/rpa/consultation-hearing/{borger['id']}/with-letter/{ansvarlig_sagsbehandler['caseworkerId']}"
+        endpoint = f"/rpa/consultation-hearing/{borger['id']}/with-letter/{ansvarlig_sagsbehandler['id']}"
         create_response = self._client.post(endpoint, json=payload).json()
 
-        letter_id = self._first_present(create_response, ["letterId", "messageId"])
+        letter_id = self._first_present(create_response, ["letterId"])
         if letter_id:
             send_endpoint = f"/messages/{letter_id}/send/{adresse_id}"
-            send_response = self._client.post(send_endpoint).json()
+            send_response = self._client.post(send_endpoint, json={"caseId": sag["id"]}).json()
             return {
                 "consultationHearing": create_response,
                 "messageSend": send_response,
