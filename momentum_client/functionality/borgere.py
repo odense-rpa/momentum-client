@@ -1175,3 +1175,41 @@ class BorgereClient:
         endpoint = f"/placements/{borger['id']}"
         response = self._client.get(endpoint)
         return response.json() if response.status_code == 200 else None
+
+    def hent_borgers_agendaer(self, borger: dict) -> Optional[list[dict]]:
+        endpoint = f"/agendas/reference/{borger["id"]}"
+
+        response = self._client.get(endpoint)
+        return response.json() if response.status_code == 200 else None
+
+    def hent_borger_agendaer_templates(self, borger: dict) -> Optional[List[dict]]:
+        endpoint = f"/agenda-templates/citizens/{borger["id"]}"
+
+        response = self._client.get(endpoint)
+        return response.json() if response.status_code == 200 else None
+
+    def tilføj_agenda_til_borger(self, borger: dict, agendanavn: str) -> dict:
+        """
+        Tilføjer en agenda til borgeren ud fra navnet på agenda-templaten.
+        Returnerer den eksisterende agenda hvis borgeren allerede har den.
+        Kaster ValueError hvis templaten ikke er tilgængelig på borgeren.
+        Kaster httpx.HTTPStatusError hvis oprettelsen fejler.
+        """
+        def navn(item: dict) -> str:
+            return (item.get("name") or item.get("title") or "").strip().lower()
+
+        agendanavn = agendanavn.strip().lower()
+
+        nuværende_agendaer = self.hent_borgers_agendaer(borger) or []
+        for agenda in nuværende_agendaer:
+            if navn(agenda) == agendanavn:
+                return agenda
+
+        templates = self.hent_borger_agendaer_templates(borger) or []
+        template = next((t for t in templates if navn(t) == agendanavn), None)
+        if template is None:
+            raise ValueError(f"Agenda-template '{agendanavn}' er ikke tilgængelig på borgeren.")
+
+        endpoint = f"/agendas/reference/{borger['id']}/agenda-template/{template['id']}"
+        response = self._client.post(endpoint)
+        return response.json()

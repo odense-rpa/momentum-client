@@ -375,3 +375,28 @@ def test_hent_placeringer(momentum_manager: MomentumClientManager, test_cpr):
 
     placeringer = momentum_manager.borgere.hent_placeringer(borger)
     assert placeringer is not None
+
+def test_hent_borgers_agendaer(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    agendaer = momentum_manager.borgere.hent_borgers_agendaer(borger)
+    assert agendaer is not None
+    assert isinstance(agendaer, list)
+
+def test_hent_borger_agendaer_templates(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    templates = momentum_manager.borgere.hent_borger_agendaer_templates(borger)
+    assert templates is not None
+    assert isinstance(templates, list)
+
+def test_tilføj_agenda_til_borger(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    templatenavn = "Dedikeret vejledningssamtale – repatriering"
+    response = momentum_manager.borgere.tilføj_agenda_til_borger(borger, templatenavn)
+    response = None
+    assert response is not None
