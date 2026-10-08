@@ -1018,6 +1018,112 @@ class BorgereClient:
 
         return filtrerede_templates[0]
 
+    def hent_alle_brevskabeloner(self) -> list[dict]:
+        """
+        Hent alle brevskabeloner.
+
+        :return: Liste af brevskabeloner som Dicts med felterne id, displayName, code,
+            type, customTemplate, tags og targetGroups
+        """
+        endpoint = "/messages/lettertemplates"
+
+        response = self._client.get(endpoint)
+
+        return response.json()
+
+    def hent_tenant_id(self) -> str:
+        """
+        Hent tenantId til brug i f.eks. oprettelse af breve.
+        Borgeren har ikke et tenantId, så der bruges municipalityId fra /tenants.
+
+        :return: tenantId som en streng
+        """
+        tenants = self._client.get("/tenants").json()
+        if not tenants:
+            raise ValueError("Ingen tenants fundet.")
+
+        return str(tenants[0]["municipalityId"])
+
+    def opret_brev(
+        self,
+        borger: dict,
+        sagsbehandler: dict,
+        titel: str,
+        brevskabelonsnavn: str,
+        booking_id: Optional[str] = None,
+        fravær_id: Optional[str] = None,
+        auto_send: Optional[dict] = None,
+    ) -> Optional[str]:
+        """
+        Opret et brev til en borger.
+
+        :param borger: Borgerens data som en Dict
+        :param sagsbehandler: Afsender (sagsbehandler) som en Dict
+        :param titel: Brevets titel
+        :param brevskabelonsnavn: Navnet (displayName) på brevskabelonen, fx "11.1 Tomt brev"
+        :param booking_id: Valgfrit bookingId
+        :param fravær_id: Valgfrit absenceId
+        :param auto_send: Valgfri autoSendLetterModel med "letterId", "channelId", "caseId" og "delaySendHours"
+        :return: Det oprettede brevs ID som en streng eller None hvis fejlet
+        """
+        brevskabelon = next(
+            (
+                skabelon
+                for skabelon in self.hent_alle_brevskabeloner()
+                if isinstance(skabelon, dict) and skabelon.get("displayName") == brevskabelonsnavn
+            ),
+            None,
+        )
+        if brevskabelon is None:
+            raise ValueError(f"Ingen brevskabelon fundet med navn: {brevskabelonsnavn}.")
+
+        tenant_id = self.hent_tenant_id()
+
+        body = {
+            "recipientId": borger["id"],
+            "senderId": sagsbehandler["id"],
+            "title": titel,
+            "templateCode": brevskabelon["code"],
+            "bookingId": booking_id,
+            "absenceId": fravær_id,
+            "autoSendLetterModel": auto_send,
+            "tenantId": tenant_id,
+        }
+
+        response = self._client.post("/workflow/letters", json=body)
+        return response.json() if response.status_code in (200, 201) else None
+
+    def send_brev(self, borger: dict, brev_id: str, sagsnavn: str) -> Optional[dict]:
+        """
+        Send et allerede oprettet brev.
+
+        Brevet sendes en time efter kaldet.
+
+        :param borger: Borgerens data som en Dict. Bruges til at finde sagen og adressen
+        :param brev_id: ID'et på det oprettede brev (returneret af opret_brev)
+        :param sagsnavn: Navnet på sagen. Matches mod sagens name, ellers caseCode
+        :return: Svaret fra Momentum som en Dict eller None hvis fejlet
+        """
+        sager = self.hent_sager(borger, aktive=False) or []
+        sag = next((s for s in sager if s.get("name") == sagsnavn), None)
+        if sag is None:
+            sag = next((s for s in sager if s.get("caseCode") == sagsnavn), None)
+        if sag is None:
+            raise ValueError(f"Ingen sag fundet med navn: {sagsnavn}.")
+
+        adresse_id = self._extract_address_id(borger)
+
+        afsendelsestidspunkt = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
+        body = {
+            "caseId": sag["id"],
+            "delayedSendAt": afsendelsestidspunkt.strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+        }
+
+        response = self._client.post(f"/messages/{brev_id}/send/{adresse_id}", json=body)
+        if response.status_code not in (200, 201, 204):
+            return None
+        return response.json() if response.content else {}
+
 
     def send_partshøring(self, borger: dict, sag: dict, aktivitet: dict, ansvarlig_sagsbehandler: dict, hændelsesdatoer: list[datetime.datetime], partshøringsfrist: datetime.datetime, begrundelse_for_partshøring: str, hændelsestype: str, titel: str, brevskabelonkode: str) -> Optional[dict]:
         if not hændelsesdatoer:
