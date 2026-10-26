@@ -280,6 +280,61 @@ def test_send_partshøring(momentum_manager: MomentumClientManager, test_cpr):
     )
     assert response is not None
 
+def test_hent_tenant_id(momentum_manager: MomentumClientManager):
+    response = momentum_manager.borgere.hent_tenant_id()
+
+    assert isinstance(response, str)
+    assert response
+
+
+def test_hent_alle_brevskabeloner(momentum_manager: MomentumClientManager):
+    response = momentum_manager.borgere.hent_alle_brevskabeloner()
+
+    assert isinstance(response, list)
+    assert all(isinstance(skabelon, dict) for skabelon in response)
+    assert any(skabelon.get("displayName") == "11.1 Tomt brev" for skabelon in response)
+
+
+def test_opret_brev(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    sagsbehandler = momentum_manager.momentum_client.søg("", "")
+    assert sagsbehandler is not None
+
+    response = momentum_manager.borgere.opret_brev(
+        borger=borger,
+        sagsbehandler=sagsbehandler[0],
+        titel="Test brev",
+        brevskabelonsnavn="11.1 Tomt brev",
+    )
+    assert response is not None
+
+
+def test_send_brev(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    sagsbehandler = momentum_manager.momentum_client.søg("", "")
+    assert sagsbehandler is not None
+
+    sagsnavn = ""
+
+    brev_id = momentum_manager.borgere.opret_brev(
+        borger=borger,
+        sagsbehandler=sagsbehandler[0],
+        titel="Test brev",
+        brevskabelonsnavn="11.1 Tomt brev",
+    )
+    assert brev_id is not None
+
+    response = momentum_manager.borgere.send_brev(
+        borger=borger,
+        brev_id=brev_id,
+        sagsnavn=sagsnavn,
+    )
+    assert response is not None
+
 
 def test_hent_supplerendesager(momentum_manager: MomentumClientManager, test_cpr):
     borger = momentum_manager.borgere.hent_borger(test_cpr)
@@ -375,6 +430,32 @@ def test_hent_placeringer(momentum_manager: MomentumClientManager, test_cpr):
 
     placeringer = momentum_manager.borgere.hent_placeringer(borger)
     assert placeringer is not None
+
+def test_hent_borgers_agendaer(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    agendaer = momentum_manager.borgere.hent_borgers_agendaer(borger)
+    assert agendaer is not None
+    assert isinstance(agendaer, list)
+
+def test_hent_borger_agendaer_templates(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    templates = momentum_manager.borgere.hent_borger_agendaer_templates(borger)
+    assert templates is not None
+    assert isinstance(templates, list)
+
+def test_tilføj_agenda_til_borger(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    templatenavn = "Dedikeret vejledningssamtale – repatriering"
+    response = momentum_manager.borgere.tilføj_agenda_til_borger(borger, templatenavn)
+    response = None
+    assert response is not None
+
 
 def test_hent_sygedagpenge_information(momentum_manager: MomentumClientManager, test_cpr):
     borger = momentum_manager.borgere.hent_borger(test_cpr)
