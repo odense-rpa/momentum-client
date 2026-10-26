@@ -375,3 +375,11 @@ def test_hent_placeringer(momentum_manager: MomentumClientManager, test_cpr):
 
     placeringer = momentum_manager.borgere.hent_placeringer(borger)
     assert placeringer is not None
+
+def test_hent_sygedagpenge_information(momentum_manager: MomentumClientManager, test_cpr):
+    borger = momentum_manager.borgere.hent_borger(test_cpr)
+    assert borger is not None
+
+    sygedagpenge_information = momentum_manager.borgere.hent_sygedagpenge_information(borger)
+    assert sygedagpenge_information is not None
+    assert isinstance(sygedagpenge_information, list)

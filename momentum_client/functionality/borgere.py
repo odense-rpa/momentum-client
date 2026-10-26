@@ -1175,3 +1175,14 @@ class BorgereClient:
         endpoint = f"/placements/{borger['id']}"
         response = self._client.get(endpoint)
         return response.json() if response.status_code == 200 else None
+
+    def hent_sygedagpenge_information(self, borger: dict) -> Optional[list]:
+        """
+        Hent en borgers sygedagpenge information.
+
+        :param borger: Borgeren hvis sdp-info skal hentes
+        :return: En liste over sdp-informationer eller None hvis hentning fejlede
+        """
+        endpoint = f"/citizens/{borger['id']}/sicknessbenefits"
+        response = self._client.get(endpoint)
+        return response.json() if response.status_code == 200 else None
