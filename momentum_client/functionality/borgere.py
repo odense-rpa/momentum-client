@@ -1193,7 +1193,10 @@ class BorgereClient:
         letter_id = self._first_present(create_response, ["letterId"])
         if letter_id:
             send_endpoint = f"/messages/{letter_id}/send/{adresse_id}"
-            send_response = self._client.post(send_endpoint, json={"caseId": sag["id"]}).json()
+            send_response = self._client.post(send_endpoint, json={
+                    "caseId": sag["id"],
+                    "senderId": ansvarlig_sagsbehandler["id"] 
+                }).json()
             return {
                 "consultationHearing": create_response,
                 "messageSend": send_response,
